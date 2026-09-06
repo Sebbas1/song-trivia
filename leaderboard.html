@@ -1,0 +1,26 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Tabla de puntuaciones — Adivina la Canción</title>
+<link rel="stylesheet" href="style.css">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Baloo+2:wght@500;700;800&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+</head>
+<body>
+
+<div class="disc" aria-hidden="true"></div>
+
+<section class="screen active">
+  <div class="card wide-card">
+    <a href="index.html" class="btn-back link-back">&larr; Volver al juego</a>
+    <h2>Tabla de puntuaciones</h2>
+    <p class="subtitle">Se guarda la mejor puntuación de cada jugador. Esta página se actualiza sola.</p>
+    <ol id="leaderboard-list" class="leaderboard-list"></ol>
+  </div>
+</section>
+
+<script src="leaderboard.js"></script>
+</body>
+</html>

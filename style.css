@@ -184,6 +184,15 @@ input[type="text"]:focus {
 }
 .btn-back:hover { color: var(--gold); }
 
+.link-btn, .link-back {
+  text-decoration: none;
+  display: inline-block;
+  box-sizing: border-box;
+}
+.link-back {
+  display: block;
+}
+
 /* ---- Categories ---- */
 .category-grid {
   display: grid;
@@ -327,6 +336,12 @@ input[type="text"]:focus {
   color: var(--ink-dim);
   margin-left: 6px;
   font-family: 'Inter', sans-serif;
+}
+.save-confirm {
+  color: var(--green);
+  font-size: 0.9rem;
+  font-weight: 600;
+  margin: 22px 0 4px;
 }
 
 /* ---- Leaderboard ---- */

@@ -8,22 +8,27 @@ para que la puntuación más alta de cada nombre se conserve entre partidas.
 
 ```
 song-trivia/
-├── index.html      → estructura de las pantallas
-├── style.css        → estilos (tema oscuro con acentos dorados)
-├── script.js         → lógica del juego y de la tabla de puntuaciones
-├── songs.js           → AQUÍ agregas tus canciones y categorías
-└── audio/              → coloca aquí tus archivos .mp3
+├── index.html          → el juego
+├── leaderboard.html     → tabla de puntuaciones (URL aparte)
+├── style.css              → estilos
+├── script.js               → lógica del juego
+├── leaderboard.js            → lógica de la tabla de puntuaciones
+├── songs.js                   → AQUÍ agregas tus canciones y categorías
+└── audio/                      → coloca aquí tus archivos .mp3
 ```
+
+Como el juego se juega desde **un solo dispositivo** (la tablet o
+computadora que ustedes den), los puntajes se guardan en el propio
+navegador (`localStorage`) — no depende de internet ni de servicios
+externos, y no requiere ninguna configuración adicional.
 
 ## Cómo correrlo en localhost
 
 **Opción rápida:** haz doble clic en `index.html` para abrirlo directamente
-en el navegador. Funciona para la mayoría de los casos.
+en el navegador.
 
-**Opción recomendada (evita problemas con el audio en algunos navegadores):**
-levanta un servidor local desde la carpeta del proyecto.
-
-Con Python (ya viene instalado en la mayoría de las computadoras):
+**Opción recomendada:** levanta un servidor local desde la carpeta del
+proyecto (más fiel a como se comporta ya publicado):
 ```
 cd song-trivia
 python -m http.server 8000
@@ -56,14 +61,15 @@ derechos, o clips que tengas autorización de usar en tu evento.
 
 ## Cómo funciona la tabla de puntuaciones
 
-- Al terminar una partida, el jugador puede presionar "Guardar puntuación".
+- Al terminar una partida, el puntaje se guarda automáticamente — no hay
+  que presionar ningún botón.
 - Se guarda por nombre: si el mismo nombre juega varias veces, solo se
   conserva su mejor puntuación.
-- Los datos se guardan en `localStorage`, es decir, quedan almacenados en
-  ese navegador/computadora aunque se cierre la pestaña o se apague el
-  equipo. Si cambias de navegador o de computadora, la tabla empieza vacía.
-- El botón "Borrar tabla de puntuaciones" (dentro de esa pantalla) borra
-  todo el historial — útil para reiniciar antes del evento.
+- Los datos quedan en el navegador de ese dispositivo (`localStorage`),
+  así que persisten aunque se cierre la pestaña o se apague el equipo —
+  pero son propios de ese navegador/dispositivo específico.
+- En `leaderboard.html`, cada fila tiene un botón "×" para eliminar a
+  un participante específico de la tabla, uno por uno.
 
 ## Ajustes rápidos
 

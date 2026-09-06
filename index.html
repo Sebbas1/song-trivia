@@ -28,7 +28,7 @@
 
     <button id="btn-go-categories" class="btn-primary">Continuar</button>
 
-    <button id="btn-go-leaderboard-home" class="btn-ghost">Ver tabla de puntuaciones</button>
+    <a href="leaderboard.html" class="btn-ghost link-btn">Ver tabla de puntuaciones</a>
   </div>
 </section>
 
@@ -80,19 +80,9 @@
     <p class="final-score"><span id="final-score">0</span><small>pts</small></p>
     <p class="subtitle" id="result-detail">Aciertos: 0 de 0</p>
 
-    <button id="btn-save-score" class="btn-primary">Guardar puntuación</button>
-    <button id="btn-play-again" class="btn-ghost">Jugar otra vez</button>
-    <button id="btn-go-leaderboard" class="btn-ghost">Ver tabla de puntuaciones</button>
-  </div>
-</section>
-
-<!-- PANTALLA: TABLA DE PUNTUACIONES -->
-<section id="screen-leaderboard" class="screen">
-  <div class="card wide-card">
-    <button class="btn-back" data-target="screen-home">&larr; Volver al inicio</button>
-    <h2>Tabla de puntuaciones</h2>
-    <p class="subtitle">Se guarda la mejor puntuación de cada jugador.</p>
-    <ol id="leaderboard-list" class="leaderboard-list"></ol>
+    <p class="save-confirm">✓ Puntuación guardada en la tabla</p>
+    <button id="btn-play-again" class="btn-primary">Jugar otra vez</button>
+    <a href="leaderboard.html" class="btn-ghost link-btn">Ver tabla de puntuaciones</a>
   </div>
 </section>
 

@@ -2,13 +2,10 @@
   ======================================================================
   ADIVINA LA CANCIÓN — lógica del juego
   ======================================================================
-  - El ranking se guarda en localStorage (persiste entre partidas y
-    entre cierres del navegador, en esta misma computadora/navegador).
-  - Se guarda solo la MEJOR puntuación de cada nombre de jugador.
+  Los puntajes se guardan en Firebase Firestore (ver firebase-config.js)
+  para que todos los celulares compartan el mismo ranking.
   ======================================================================
 */
-
-const STORAGE_KEY = "adivinaCancion.leaderboard";
 
 // ---------- Estado del juego ----------
 let state = {
@@ -68,15 +65,6 @@ $("#player-name").addEventListener("keydown", (e) => {
 });
 $("#player-name").addEventListener("input", () => {
   $("#player-name").style.outline = "";
-});
-
-$("#btn-go-leaderboard-home").addEventListener("click", () => {
-  renderLeaderboard();
-  showScreen("screen-leaderboard");
-});
-$("#btn-go-leaderboard").addEventListener("click", () => {
-  renderLeaderboard();
-  showScreen("screen-leaderboard");
 });
 
 $("#btn-play-again").addEventListener("click", () => {
@@ -230,20 +218,18 @@ function endGame() {
   $("#final-score").textContent = state.score;
   $("#result-detail").textContent =
     `Aciertos: ${state.correctCount} de ${state.questions.length}`;
+  // Se guarda automáticamente apenas termina la partida, sin necesidad
+  // de que el jugador presione ningún botón.
+  saveScore(state.playerName, state.score);
   showScreen("screen-results");
 }
 
-$("#btn-save-score").addEventListener("click", () => {
-  saveScore(state.playerName, state.score);
-  $("#btn-save-score").textContent = "¡Guardado!";
-  $("#btn-save-score").disabled = true;
-  setTimeout(() => {
-    renderLeaderboard();
-    showScreen("screen-leaderboard");
-  }, 500);
-});
-
 // ---------- Tabla de puntuaciones (localStorage) ----------
+// Como un solo dispositivo (tablet o computadora) es el que usan todos
+// los participantes por turnos, guardar en el propio navegador es
+// suficiente: no depende de internet ni de servicios externos.
+const STORAGE_KEY = "adivinaCancion.leaderboard";
+
 function loadLeaderboard() {
   try {
     const raw = localStorage.getItem(STORAGE_KEY);
@@ -268,44 +254,6 @@ function saveScore(name, score) {
   }
   board.sort((a, b) => b.score - a.score);
   localStorage.setItem(STORAGE_KEY, JSON.stringify(board));
-
-  $("#btn-save-score").disabled = false;
-  $("#btn-save-score").textContent = "Guardar puntuación";
-}
-
-function renderLeaderboard() {
-  const board = loadLeaderboard().sort((a, b) => b.score - a.score);
-  const list = $("#leaderboard-list");
-  list.innerHTML = "";
-
-  if (board.length === 0) {
-    list.innerHTML = `<li class="leaderboard-empty" style="justify-content:center;">Todavía no hay puntuaciones guardadas.</li>`;
-    return;
-  }
-
-  board.forEach((entry, index) => {
-    const li = document.createElement("li");
-    li.innerHTML = `
-      <span class="rank">#${index + 1}</span>
-      <span class="lb-name">${escapeHtml(entry.name)}</span>
-      <span class="lb-score">${entry.score} pts</span>
-      <button class="btn-delete-entry" title="Eliminar a ${escapeHtml(entry.name)}" aria-label="Eliminar a ${escapeHtml(entry.name)}">&times;</button>
-    `;
-    li.querySelector(".btn-delete-entry").addEventListener("click", () => {
-      if (confirm(`¿Eliminar a "${entry.name}" de la tabla de puntuaciones?`)) {
-        deleteScore(entry.name);
-      }
-    });
-    list.appendChild(li);
-  });
-}
-
-function deleteScore(name) {
-  const board = loadLeaderboard().filter(
-    entry => entry.name.toLowerCase() !== name.toLowerCase()
-  );
-  localStorage.setItem(STORAGE_KEY, JSON.stringify(board));
-  renderLeaderboard();
 }
 
 function escapeHtml(str) {
@@ -314,16 +262,5 @@ function escapeHtml(str) {
   return div.innerHTML;
 }
 
-// ---------- Actualización automática de la tabla ----------
-// Si la tabla de puntuaciones está abierta en otra pestaña o ventana del
-// MISMO navegador (por ejemplo una pantalla grande conectada a la misma
-// computadora), este evento se dispara solo y refresca la lista sin que
-// nadie tenga que volver a entrar a la pantalla.
-window.addEventListener("storage", (e) => {
-  if (e.key === STORAGE_KEY) {
-    renderLeaderboard();
-  }
-});
-
 // ---------- Inicio ----------
-renderLeaderboard();
+// (No hace falta nada aquí: la primera pantalla ya está lista en el HTML.)
