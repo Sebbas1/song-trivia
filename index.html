@@ -1,0 +1,104 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Adivina la Canción</title>
+<link rel="stylesheet" href="style.css">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Baloo+2:wght@500;700;800&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+</head>
+<body>
+
+<div class="disc" aria-hidden="true"></div>
+
+<!-- PANTALLA: INICIO -->
+<section id="screen-home" class="screen active">
+  <div class="card home-card">
+    <div class="brand">
+      <span class="brand-mark">
+        <span class="brand-dot"></span>
+      </span>
+      <h1>Adivina la Canción</h1>
+    </div>
+    <p class="subtitle">Escucha el fragmento y adivina el tema antes de que se acabe el tiempo.</p>
+
+    <label class="field-label" for="player-name">Tu nombre</label>
+    <input id="player-name" type="text" placeholder="Escribe tu nombre..." maxlength="20" autocomplete="off">
+
+    <button id="btn-go-categories" class="btn-primary">Continuar</button>
+
+    <button id="btn-go-leaderboard-home" class="btn-ghost">Ver tabla de puntuaciones</button>
+  </div>
+</section>
+
+<!-- PANTALLA: CATEGORIAS -->
+<section id="screen-categories" class="screen">
+  <div class="card wide-card">
+    <button class="btn-back" data-target="screen-home">&larr; Volver</button>
+    <h2>Elige una categoría</h2>
+    <p class="subtitle">Cada categoría trae su propia lista de canciones.</p>
+    <div id="category-grid" class="category-grid"></div>
+  </div>
+</section>
+
+<!-- PANTALLA: JUEGO -->
+<section id="screen-game" class="screen">
+  <div class="card game-card">
+    <div class="game-header">
+      <div class="track-badge">
+        <button id="btn-play-audio" class="play-button" aria-label="Reproducir fragmento">
+          <span class="ring"></span>
+          <span class="dot"></span>
+        </button>
+      </div>
+      <div class="question-info">
+        <span class="pill" id="question-tag">PREGUNTA 1</span>
+        <h2>¿Cuál es esta canción?</h2>
+      </div>
+    </div>
+
+    <div class="timer-track">
+      <div id="timer-fill" class="timer-fill"></div>
+      <span id="timer-label" class="timer-label">0:15</span>
+    </div>
+
+    <div id="answers-grid" class="answers-grid"></div>
+
+    <div class="score-row">
+      <span>Ronda <strong id="round-counter">1</strong> de <strong id="round-total">8</strong></span>
+      <span>Puntos: <strong id="live-score">0</strong></span>
+    </div>
+  </div>
+</section>
+
+<!-- PANTALLA: RESULTADOS -->
+<section id="screen-results" class="screen">
+  <div class="card home-card">
+    <span class="pill result-pill">¡Partida terminada!</span>
+    <h2 id="result-name">Buen trabajo</h2>
+    <p class="final-score"><span id="final-score">0</span><small>pts</small></p>
+    <p class="subtitle" id="result-detail">Aciertos: 0 de 0</p>
+
+    <button id="btn-save-score" class="btn-primary">Guardar puntuación</button>
+    <button id="btn-play-again" class="btn-ghost">Jugar otra vez</button>
+    <button id="btn-go-leaderboard" class="btn-ghost">Ver tabla de puntuaciones</button>
+  </div>
+</section>
+
+<!-- PANTALLA: TABLA DE PUNTUACIONES -->
+<section id="screen-leaderboard" class="screen">
+  <div class="card wide-card">
+    <button class="btn-back" data-target="screen-home">&larr; Volver al inicio</button>
+    <h2>Tabla de puntuaciones</h2>
+    <p class="subtitle">Se guarda la mejor puntuación de cada jugador.</p>
+    <ol id="leaderboard-list" class="leaderboard-list"></ol>
+  </div>
+</section>
+
+<audio id="audio-player" preload="none"></audio>
+
+<script src="songs.js"></script>
+<script src="script.js"></script>
+</body>
+</html>
