@@ -1,10 +1,10 @@
 /*
- 
+  ======================================================================
   ADIVINA LA CANCIÓN — lógica del juego
- 
+  ======================================================================
   Los puntajes se guardan en Firebase Firestore (ver firebase-config.js)
   para que todos los celulares compartan el mismo ranking.
- 
+  ======================================================================
 */
 
 // ---------- Estado del juego ----------
@@ -120,6 +120,25 @@ function loadQuestion() {
   audio.currentTime = 0;
   audio.src = q.audio;
   $("#btn-play-audio").classList.remove("playing");
+
+  // Se reproduce solo al entrar a la pregunta.
+  audio.play()
+    .then(() => $("#btn-play-audio").classList.add("playing"))
+    .catch(() => {
+      // Si el navegador bloquea la reproducción automática, el botón
+      // sigue disponible para que el jugador le dé play manualmente.
+      console.warn("Reproducción automática bloqueada, usa el botón de play.");
+    });
+
+  // Reproduce el fragmento automáticamente al entrar a la pregunta.
+  audio.play()
+    .then(() => $("#btn-play-audio").classList.add("playing"))
+    .catch(() => {
+      // Algunos navegadores bloquean el autoplay hasta que haya
+      // habido una interacción del usuario en la página. Si pasa,
+      // el jugador puede darle clic al botón para escucharlo igual.
+      console.warn("El navegador bloqueó el autoplay. Usa el botón de reproducir.");
+    });
 
   const grid = $("#answers-grid");
   grid.innerHTML = "";
