@@ -33,24 +33,7 @@ externos, y no requiere ninguna configuración adicional.
    vacío del color de fondo — revisa que el nombre coincida exactamente
    (mayúsculas/minúsculas incluidas).
 
-## Cómo correrlo en localhost
 
-**Opción rápida:** haz doble clic en `index.html` para abrirlo directamente
-en el navegador.
-
-**Opción recomendada:** levanta un servidor local desde la carpeta del
-proyecto (más fiel a como se comporta ya publicado):
-```
-cd song-trivia
-python -m http.server 8000
-```
-Luego abre en el navegador: `http://localhost:8000`
-
-Con Node.js, si lo tienes instalado:
-```
-cd song-trivia
-npx serve .
-```
 
 ## Cómo agregar tus propias canciones
 

@@ -1,10 +1,10 @@
 /*
-  ======================================================================
+ 
   ADIVINA LA CANCIÓN — lógica del juego
-  ======================================================================
+ 
   Los puntajes se guardan en Firebase Firestore (ver firebase-config.js)
   para que todos los celulares compartan el mismo ranking.
-  ======================================================================
+ 
 */
 
 // ---------- Estado del juego ----------

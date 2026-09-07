@@ -16,17 +16,7 @@
     - options: 3 opciones falsas (distractores). El programa mezcla
                automáticamente la respuesta correcta entre ellas.
 
-  IMPORTANTE SOBRE LAS FOTOS:
-  Este proyecto no incluye fotos de los artistas. Descarga tú mismo una
-  foto de cada uno (cuadrada funciona mejor, ej. 300x300px), guárdala
-  dentro de la carpeta "images/" y escribe aquí el nombre exacto del
-  archivo. Como es para un proyecto escolar de uso interno y no comercial,
-  basta con una foto de perfil o promocional de cada artista.
 
-  IMPORTANTE SOBRE EL AUDIO:
-  Por derechos de autor, este proyecto tampoco incluye canciones reales.
-  Agrega tú mismo los archivos .mp3 (fragmentos cortos, 10-20s) dentro
-  de la carpeta "audio/".
   ======================================================================
 */
 
@@ -37,17 +27,17 @@ const SONG_CATEGORIES = [
     image: "images/tainy.jpg",
     songs: [
       {
-        title: "Ejemplo Tainy 1",
+        title: "Monstruo",
         audio: "audio/tainy1.mp3",
         options: ["Tema Falso A", "Tema Falso B", "Tema Falso C"]
       },
       {
-        title: "Ejemplo Tainy 2",
+        title: "mojabi ghost",
         audio: "audio/tainy2.mp3",
         options: ["Tema Falso D", "Tema Falso E", "Tema Falso F"]
       },
       {
-        title: "Ejemplo Tainy 3",
+        title: "a mi tambien",
         audio: "audio/tainy3.mp3",
         options: ["Tema Falso G", "Tema Falso H", "Tema Falso I"]
       }
@@ -59,17 +49,17 @@ const SONG_CATEGORIES = [
     image: "images/delarose.jpg",
     songs: [
       {
-        title: "Ejemplo De La Rose 1",
+        title: "kyoto",
         audio: "audio/delarose1.mp3",
         options: ["Tema Falso J", "Tema Falso K", "Tema Falso L"]
       },
       {
-        title: "Ejemplo De La Rose 2",
+        title: "aurora",
         audio: "audio/delarose2.mp3",
         options: ["Tema Falso M", "Tema Falso N", "Tema Falso O"]
       },
       {
-        title: "Ejemplo De La Rose 3",
+        title: "yo te conozco",
         audio: "audio/delarose3.mp3",
         options: ["Tema Falso P", "Tema Falso Q", "Tema Falso R"]
       }
@@ -81,17 +71,17 @@ const SONG_CATEGORIES = [
     image: "images/omarcourtz.jpg",
     songs: [
       {
-        title: "Ejemplo Omar Courtz 1",
+        title: "UNA NOTI",
         audio: "audio/omarcourtz1.mp3",
         options: ["Tema Falso S", "Tema Falso T", "Tema Falso U"]
       },
       {
-        title: "Ejemplo Omar Courtz 2",
+        title: "KOKO",
         audio: "audio/omarcourtz2.mp3",
         options: ["Tema Falso V", "Tema Falso W", "Tema Falso X"]
       },
       {
-        title: "Ejemplo Omar Courtz 3",
+        title: "Kyoto",
         audio: "audio/omarcourtz3.mp3",
         options: ["Tema Falso Y", "Tema Falso Z", "Tema Falso AA"]
       }

@@ -1,11 +1,11 @@
 /*
-  ======================================================================
+
   TABLA DE PUNTUACIONES — página independiente
-  ======================================================================
+
   Lee el mismo localStorage que usa el juego (script.js), así que
   cualquier puntuación guardada desde index.html en este mismo
   dispositivo/navegador aparece aquí.
-  ======================================================================
+ 
 */
 
 const STORAGE_KEY = "adivinaCancion.leaderboard";
