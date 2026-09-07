@@ -193,28 +193,44 @@ input[type="text"]:focus {
   display: block;
 }
 
-/* ---- Categories ---- */
+/* ---- Categories / Artists ---- */
 .category-grid {
   display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(150px, 1fr));
-  gap: 14px;
+  grid-template-columns: repeat(auto-fill, minmax(110px, 1fr));
+  gap: 20px 14px;
   margin-top: 20px;
 }
-.category-tile {
-  background: var(--bg-1);
-  border: 1px solid rgba(255,255,255,0.08);
-  border-radius: var(--radius-md);
-  padding: 22px 14px;
-  text-align: center;
+.artist-tile {
+  background: none;
+  border: none;
   cursor: pointer;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 10px;
+  padding: 4px;
   font-family: 'Baloo 2', sans-serif;
-  font-size: 1.05rem;
-  font-weight: 700;
-  color: var(--ink);
+}
+.artist-photo {
+  width: 96px;
+  height: 96px;
+  border-radius: 50%;
+  background-size: cover;
+  background-position: center;
+  background-color: var(--bg-1);
+  border: 3px solid rgba(255,255,255,0.12);
   transition: transform 0.15s ease, border-color 0.15s ease;
 }
-.category-tile .icon { display: block; font-size: 1.8rem; margin-bottom: 8px; }
-.category-tile:hover { transform: translateY(-3px); border-color: var(--gold); }
+.artist-tile:hover .artist-photo {
+  transform: translateY(-3px);
+  border-color: var(--gold);
+}
+.artist-name {
+  font-size: 0.95rem;
+  font-weight: 700;
+  color: var(--ink);
+  text-align: center;
+}
 
 /* ---- Game ---- */
 .game-card { max-width: 620px; }

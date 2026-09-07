@@ -13,14 +13,25 @@ song-trivia/
 ├── style.css              → estilos
 ├── script.js               → lógica del juego
 ├── leaderboard.js            → lógica de la tabla de puntuaciones
-├── songs.js                   → AQUÍ agregas tus canciones y categorías
-└── audio/                      → coloca aquí tus archivos .mp3
+├── songs.js                   → AQUÍ agregas tus artistas y canciones
+├── images/                      → coloca aquí las fotos de los artistas
+└── audio/                        → coloca aquí tus archivos .mp3
 ```
 
 Como el juego se juega desde **un solo dispositivo** (la tablet o
 computadora que ustedes den), los puntajes se guardan en el propio
 navegador (`localStorage`) — no depende de internet ni de servicios
 externos, y no requiere ninguna configuración adicional.
+
+## Cómo agregar la foto de cada artista
+
+1. Descarga una foto de perfil o promocional del artista (idealmente
+   cuadrada, unos 300x300px funciona bien).
+2. Guárdala dentro de la carpeta `images/` con el nombre que indicaste
+   en `songs.js` (por ejemplo `images/tainy.jpg`).
+3. Si el archivo no aparece, la tarjeta simplemente se ve con un círculo
+   vacío del color de fondo — revisa que el nombre coincida exactamente
+   (mayúsculas/minúsculas incluidas).
 
 ## Cómo correrlo en localhost
 

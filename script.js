@@ -72,14 +72,17 @@ $("#btn-play-again").addEventListener("click", () => {
   showScreen("screen-categories");
 });
 
-// ---------- Pantalla de categorías ----------
+// ---------- Pantalla de artistas ----------
 function buildCategoryGrid() {
   const grid = $("#category-grid");
   grid.innerHTML = "";
   SONG_CATEGORIES.forEach(cat => {
     const tile = document.createElement("button");
-    tile.className = "category-tile";
-    tile.innerHTML = `<span class="icon">${cat.icon || "🎵"}</span>${cat.name}`;
+    tile.className = "artist-tile";
+    tile.innerHTML = `
+      <span class="artist-photo" style="background-image: url('${cat.image}')"></span>
+      <span class="artist-name">${cat.name}</span>
+    `;
     tile.addEventListener("click", () => startGame(cat));
     grid.appendChild(tile);
   });
