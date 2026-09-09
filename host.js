@@ -3,7 +3,7 @@ let hostUser = null;
 let activeRoomId = null;
 let activeRoomRef = null;
 let unsubscribeRoom = null;
-let unsubscribeScores = null;
+let unsubscribeScores = null; // ranking general
 
 function $(selector) { return document.querySelector(selector); }
 function sanitizeRoomId(raw) {
@@ -20,7 +20,7 @@ function setStatus(message, type = "") {
   el.dataset.type = type;
 }
 function setBusy(isBusy) {
-  ["#btn-open-room", "#btn-start-room", "#btn-close-room", "#btn-reset-room", "#btn-delete-room"].forEach(sel => {
+  ["#btn-open-room", "#btn-start-room", "#btn-close-room", "#btn-reset-room", "#btn-delete-room", "#btn-delete-global-scores"].forEach(sel => {
     const el = $(sel);
     if (el) el.disabled = isBusy;
   });
@@ -95,7 +95,6 @@ function attachRoom(roomId, ref) {
   const boardUrl = new URL("leaderboard.html", window.location.href);
   boardUrl.search = "";
   boardUrl.hash = "";
-  boardUrl.searchParams.set("room", roomId);
   $("#host-public-board").href = boardUrl.href;
 
   const hostUrl = new URL("host.html", window.location.href);
@@ -113,10 +112,11 @@ function attachRoom(roomId, ref) {
     renderRoomState(snapshot.data().status || "waiting");
   });
 
-  unsubscribeScores = ref.collection("scores").orderBy("score", "desc").limit(100)
+  // El host siempre ve el MISMO ranking general, independientemente de la sala activa.
+  unsubscribeScores = window.gameDb.collection("scores").orderBy("score", "desc").limit(100)
     .onSnapshot(snapshot => renderHostLeaderboard(snapshot.docs.map(doc => doc.data())), error => {
       console.error(error);
-      setStatus("La sala está abierta, pero no se pudo cargar el marcador.", "error");
+      setStatus("La sala está abierta, pero no se pudo cargar el ranking general.", "error");
     });
 }
 
@@ -156,7 +156,7 @@ function renderHostLeaderboard(board) {
     const li = document.createElement("li");
     li.innerHTML = `
       <span class="rank">#${index + 1}</span>
-      <span class="lb-name">${escapeHtml(entry.name)}<small class="lb-artist">${escapeHtml(entry.artist || "")}</small></span>
+      <span class="lb-name">${escapeHtml(entry.name)}<small class="lb-artist">${escapeHtml(entry.artist || "")} · ${escapeHtml(entry.room && entry.room !== "general" ? `Sala ${entry.room}` : "Sala general")}</small></span>
       <span class="lb-score">${Number(entry.score || 0)} pts</span>
     `;
     list.appendChild(li);
@@ -185,34 +185,18 @@ async function updateRoomStatus(status) {
   }
 }
 
-async function deleteAllScores() {
-  if (!activeRoomRef) return 0;
-  let deleted = 0;
-  while (true) {
-    const snapshot = await activeRoomRef.collection("scores").limit(400).get();
-    if (snapshot.empty) break;
-    const batch = window.gameDb.batch();
-    snapshot.docs.forEach(doc => batch.delete(doc.ref));
-    await batch.commit();
-    deleted += snapshot.size;
-  }
-  return deleted;
-}
-
 async function resetRoom() {
   if (!activeRoomRef) return;
-  const ok = confirm("¿Reiniciar la sala? Se borrarán TODAS las puntuaciones y volverá a estado de espera.");
+  const ok = confirm("¿Reiniciar esta sala? Volverá a estado de espera. El ranking general NO se borrará.");
   if (!ok) return;
   setBusy(true);
-  setStatus("Borrando puntuaciones…");
   try {
-    const deleted = await deleteAllScores();
     await activeRoomRef.update({
       status: "waiting",
       startedAt: firebase.firestore.FieldValue.delete(),
       closedAt: firebase.firestore.FieldValue.delete()
     });
-    setStatus(`Sala reiniciada. Se eliminaron ${deleted} puntuaciones.`, "ok");
+    setStatus("Sala reiniciada. Las puntuaciones permanecen en el ranking general.", "ok");
   } catch (error) {
     console.error(error);
     setStatus("No se pudo reiniciar la sala.", "error");
@@ -223,21 +207,62 @@ async function resetRoom() {
 
 async function deleteRoom() {
   if (!activeRoomRef) return;
-  const typed = prompt(`Para eliminar la sala “${activeRoomId}” y todas sus puntuaciones, escribe exactamente: ${activeRoomId}`);
+  const typed = prompt(`Para eliminar la sala “${activeRoomId}”, escribe exactamente: ${activeRoomId}\n\nLas puntuaciones del ranking general NO se eliminarán.`);
   if (typed !== activeRoomId) {
     if (typed !== null) setStatus("El nombre no coincide. La sala no se eliminó.", "error");
     return;
   }
   setBusy(true);
-  setStatus("Eliminando sala y puntuaciones…");
+  setStatus("Eliminando sala…");
   try {
-    await deleteAllScores();
     await activeRoomRef.delete();
-    setStatus("Sala eliminada por completo.", "ok");
+    setStatus("Sala eliminada. El ranking general se conservó.", "ok");
     clearRoomUi();
   } catch (error) {
     console.error(error);
     setStatus("No se pudo eliminar la sala.", "error");
+  } finally {
+    setBusy(false);
+  }
+}
+
+async function deleteGlobalScores() {
+  if (!hostUser) return;
+
+  const first = confirm("¿Borrar TODO el ranking general? Esta acción eliminará las mejores puntuaciones acumuladas en todas las salas creadas desde este host.");
+  if (!first) return;
+
+  const typed = prompt('Escribe BORRAR para confirmar la eliminación del ranking general:');
+  if (typed !== "BORRAR") {
+    if (typed !== null) setStatus("Confirmación incorrecta. El ranking general no se borró.", "error");
+    return;
+  }
+
+  setBusy(true);
+  setStatus("Borrando ranking general…");
+  let deleted = 0;
+
+  try {
+    // Por seguridad solo borra resultados pertenecientes a salas creadas
+    // por este mismo navegador/host. Si este host creó todas las salas,
+    // esto equivale a vaciar por completo el ranking general.
+    while (true) {
+      const snapshot = await window.gameDb.collection("scores")
+        .where("hostUid", "==", hostUser.uid)
+        .limit(400)
+        .get();
+
+      if (snapshot.empty) break;
+      const batch = window.gameDb.batch();
+      snapshot.docs.forEach(doc => batch.delete(doc.ref));
+      await batch.commit();
+      deleted += snapshot.size;
+    }
+
+    setStatus(`Ranking general borrado. Se eliminaron ${deleted} puntuaciones.`, "ok");
+  } catch (error) {
+    console.error(error);
+    setStatus("No se pudo borrar el ranking general. Revisa las reglas de Firestore.", "error");
   } finally {
     setBusy(false);
   }
@@ -274,6 +299,7 @@ $("#btn-start-room").addEventListener("click", () => updateRoomStatus("open"));
 $("#btn-close-room").addEventListener("click", () => updateRoomStatus("closed"));
 $("#btn-reset-room").addEventListener("click", resetRoom);
 $("#btn-delete-room").addEventListener("click", deleteRoom);
+$("#btn-delete-global-scores").addEventListener("click", deleteGlobalScores);
 
 window.addEventListener("beforeunload", () => {
   if (unsubscribeRoom) unsubscribeRoom();

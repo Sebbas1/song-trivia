@@ -5,7 +5,7 @@
 */
 
 const ROOM_ID = getRoomId();
-const LOCAL_STORAGE_KEY = `adivinaCancion.leaderboard.${ROOM_ID}`;
+const LOCAL_STORAGE_KEY = `adivinaCancion.leaderboard.${ROOM_ID}`; // respaldo local por sala si Firebase falla
 let unsubscribeRoom = null;
 let roomIsOpen = false;
 
@@ -193,28 +193,21 @@ function loadQuestion() {
   audio.src = q.audio;
   $("#btn-play-audio").classList.remove("playing");
 
-const startAt = Number(q.start || 0);
+  // Intenta reproducir automáticamente apenas comienza cada pregunta.
+  // Si la canción tiene `start`, ese valor está expresado en segundos.
+  const startAt = Number(q.start || 0);
+  if (Number.isFinite(startAt) && startAt > 0) {
+    audio.addEventListener("loadedmetadata", () => {
+      try {
+        audio.currentTime = Math.min(startAt, Math.max(0, audio.duration - 0.1));
+      } catch (_) {}
+    }, { once: true });
+  }
 
-if (Number.isFinite(startAt) && startAt > 0) {
-  audio.addEventListener("loadedmetadata", () => {
-    try {
-      audio.currentTime = Math.min(
-        startAt,
-        Math.max(0, audio.duration - 0.1)
-      );
-    } catch (_) {}
-  }, { once: true });
-}
-
-audio.load();
-
-audio.play()
-  .then(() => {
-    $("#btn-play-audio").classList.add("playing");
-  })
-  .catch(error => {
-    console.warn("El navegador bloqueó el audio automático:", error);
-  });
+  audio.load();
+  audio.play()
+    .then(() => $("#btn-play-audio").classList.add("playing"))
+    .catch(error => console.warn("Autoplay bloqueado. El estudiante puede pulsar Play.", error));
 
   const grid = $("#answers-grid");
   grid.innerHTML = "";
@@ -303,7 +296,7 @@ async function endGame() {
 
   const savedOnline = await saveScore(state.playerName, state.score, state.category.name);
   $("#save-status").textContent = savedOnline
-    ? "✓ Puntuación guardada en el marcador de la sala"
+    ? "✓ Puntuación guardada en el ranking general"
     : "No se pudo guardar la puntuación compartida.";
 }
 
@@ -315,21 +308,26 @@ async function saveScore(name, score, artist) {
     return false;
   }
 
-  const ref = window.gameDb
-    .collection("rooms")
-    .doc(ROOM_ID)
-    .collection("scores")
-    .doc(user.uid);
+  // Las salas controlan el acceso, pero TODAS las puntuaciones se guardan
+  // en una sola colección global: /scores/{uid}.
+  const roomRef = window.gameDb.collection("rooms").doc(ROOM_ID);
+  const scoreRef = window.gameDb.collection("scores").doc(user.uid);
 
   try {
     await window.gameDb.runTransaction(async transaction => {
-      const current = await transaction.get(ref);
+      const roomSnapshot = await transaction.get(roomRef);
+      if (!roomSnapshot.exists) throw new Error("La sala ya no existe.");
+
+      const room = roomSnapshot.data();
+      const current = await transaction.get(scoreRef);
       if (!current.exists || score > Number(current.data().score || 0)) {
-        transaction.set(ref, {
+        transaction.set(scoreRef, {
           uid: user.uid,
           name,
           score,
           artist,
+          room: ROOM_ID,
+          hostUid: room.hostUid,
           date: firebase.firestore.FieldValue.serverTimestamp()
         });
       }

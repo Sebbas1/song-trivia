@@ -51,25 +51,29 @@
           <p id="host-control-note" class="host-help">Mientras esté en espera, los estudiantes pueden abrir el enlace pero no comenzar.</p>
           <button id="btn-start-room" class="btn-primary" type="button">▶ Iniciar sala</button>
           <button id="btn-close-room" class="btn-ghost" type="button">■ Cerrar sala</button>
-          <button id="btn-reset-room" class="btn-ghost warning" type="button">↻ Reiniciar sala y borrar puntuaciones</button>
-          <button id="btn-delete-room" class="btn-ghost danger" type="button">Eliminar sala y todos sus datos</button>
+          <button id="btn-reset-room" class="btn-ghost warning" type="button">↻ Reiniciar sala</button>
+          <button id="btn-delete-room" class="btn-ghost danger" type="button">Eliminar sala</button>
         </div>
       </div>
 
       <div class="host-leaderboard-wrap">
         <div class="host-section-heading">
           <div>
-            <span class="host-eyebrow">MARCADOR</span>
-            <h2>Resultados en vivo</h2>
+            <span class="host-eyebrow">RANKING GENERAL</span>
+            <h2>Resultados en vivo de todas las salas</h2>
           </div>
-          <a id="host-public-board" class="btn-ghost compact-link" href="leaderboard.html" target="_blank" rel="noopener">Abrir marcador público</a>
+          <a id="host-public-board" class="btn-ghost compact-link" href="leaderboard.html" target="_blank" rel="noopener">Abrir ranking general</a>
         </div>
         <ol id="host-leaderboard-list" class="leaderboard-list"></ol>
+        <div class="global-ranking-admin">
+          <p class="host-help">Reiniciar o eliminar una sala no borra estas puntuaciones. Usa este botón únicamente cuando quieras comenzar un ranking completamente nuevo.</p>
+          <button id="btn-delete-global-scores" class="btn-ghost danger" type="button">Borrar tabla general</button>
+        </div>
       </div>
     </div>
 
     <div class="host-note">
-      <strong>Importante:</strong> el control de esta sala queda asociado a este navegador mediante el usuario anónimo de Firebase. Usa este mismo navegador para iniciar, reiniciar o eliminar la sala.
+      <strong>Importante:</strong> las salas controlan cuándo pueden jugar los estudiantes, pero todas alimentan un único ranking general. El control y el borrado del ranking quedan asociados a este navegador mediante el usuario anónimo de Firebase.
     </div>
   </div>
 </section>

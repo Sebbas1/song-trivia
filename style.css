@@ -682,3 +682,19 @@ input:disabled {
     min-height: 0;
   }
 }
+
+
+/* ---- Ranking general ---- */
+.global-ranking-admin {
+  margin-top: 18px;
+  padding-top: 18px;
+  border-top: 1px solid rgba(255,255,255,0.08);
+}
+
+.global-ranking-admin .host-help {
+  margin: 0 0 10px;
+}
+
+.global-ranking-admin .btn-ghost {
+  margin-top: 0;
+}
