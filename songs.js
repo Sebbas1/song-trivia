@@ -29,18 +29,35 @@ const SONG_CATEGORIES = [
       {
         title: "Monstruo",
         audio: "audio/tainy1.mp3",
-        options: ["Tema Falso A", "Tema Falso B", "Tema Falso C"]
+        
       },
       {
-        title: "mojabi ghost",
+        title: "Mojabi ghost",
         audio: "audio/tainy2.mp3",
-        options: ["Tema Falso D", "Tema Falso E", "Tema Falso F"]
+        
       },
       {
         title: "a mi tambien",
         audio: "audio/tainy3.mp3",
-        options: ["Tema Falso G", "Tema Falso H", "Tema Falso I"]
+        
+      },
+      {
+        title: "PASIEMPRE",
+        audio: "audio/tainy4.mp3",
+        start: 48
+      },
+      {
+        title: "COLMILLO",
+        audio: "audio/tainy5.mp3",
+        start: 50
+      },
+      {
+       title: "Sci-Fi",
+       audio: "audio/tainy6.mp3",
+       start: 35
       }
+
+      
     ]
   },
   {
@@ -51,18 +68,33 @@ const SONG_CATEGORIES = [
       {
         title: "kyoto",
         audio: "audio/delarose1.mp3",
-        options: ["Tema Falso J", "Tema Falso K", "Tema Falso L"]
+       
       },
       {
         title: "aurora",
         audio: "audio/delarose2.mp3",
-        options: ["Tema Falso M", "Tema Falso N", "Tema Falso O"]
+        
       },
       {
         title: "yo te conozco",
         audio: "audio/delarose3.mp3",
-        options: ["Tema Falso P", "Tema Falso Q", "Tema Falso R"]
-      }
+        
+      },
+      {
+        title: "Q U E V A S H A C E R H O Y ?",
+        audio: "audio/delarose4.mp3",
+        start: 44
+      },
+      {
+        title: "NUBES",
+        audio: "audio/delarose5.mp3",
+        start: 34
+     },
+     {
+       title: "444 - Remix",
+       audio: "audio/delarose6.mp3",
+       start: 81
+    }
     ]
   },
   {
@@ -84,14 +116,29 @@ const SONG_CATEGORIES = [
         title: "Kyoto",
         audio: "audio/omarcourtz3.mp3",
         options: ["Tema Falso Y", "Tema Falso Z", "Tema Falso AA"]
-      }
+      },
+      {
+        title: "VeLDÁ",
+        audio: "audio/omarcourtz4.mp3",
+        start: 138
+      },
+      {
+       title: "LUCES DE COLORES",
+       audio: "audio/omarcourtz5.mp3",
+       start: 30
+     },
+     {
+       title: "De Lejitos - Remix",
+       audio: "audio/omarcourtz6.mp3",
+       start: 67
+}
     ]
   }
 ];
 
 // Cuántas rondas juega cada partida como máximo (si el artista tiene menos
 // canciones que este número, se usan todas las que haya).
-const ROUNDS_PER_GAME = 8;
+const ROUNDS_PER_GAME = 5;
 
 // Segundos por pregunta.
 const SECONDS_PER_QUESTION = 15;

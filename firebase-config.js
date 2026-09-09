@@ -40,4 +40,5 @@ if (firebaseConfigured) {
     "Firebase aún no está configurado."
   );
 
+
 }

@@ -193,18 +193,28 @@ function loadQuestion() {
   audio.src = q.audio;
   $("#btn-play-audio").classList.remove("playing");
 
-  const beginPlayback = () => {
-    const startAt = Number(q.start || 0);
-    if (Number.isFinite(startAt) && startAt > 0) {
-      try { audio.currentTime = startAt; } catch (_) {}
-    }
-    audio.play()
-      .then(() => $("#btn-play-audio").classList.add("playing"))
-      .catch(() => console.warn("Autoplay bloqueado. El estudiante puede pulsar Play."));
-  };
+const startAt = Number(q.start || 0);
 
-  if (audio.readyState >= 1) beginPlayback();
-  else audio.addEventListener("loadedmetadata", beginPlayback, { once: true });
+if (Number.isFinite(startAt) && startAt > 0) {
+  audio.addEventListener("loadedmetadata", () => {
+    try {
+      audio.currentTime = Math.min(
+        startAt,
+        Math.max(0, audio.duration - 0.1)
+      );
+    } catch (_) {}
+  }, { once: true });
+}
+
+audio.load();
+
+audio.play()
+  .then(() => {
+    $("#btn-play-audio").classList.add("playing");
+  })
+  .catch(error => {
+    console.warn("El navegador bloqueó el audio automático:", error);
+  });
 
   const grid = $("#answers-grid");
   grid.innerHTML = "";
