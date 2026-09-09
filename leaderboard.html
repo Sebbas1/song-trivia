@@ -14,13 +14,19 @@
 
 <section class="screen active">
   <div class="card wide-card">
-    <a href="index.html" class="btn-back link-back">&larr; Volver al juego</a>
+    <a id="back-to-game" href="index.html" class="btn-back link-back">&larr; Volver al juego</a>
     <h2>Tabla de puntuaciones</h2>
-    <p class="subtitle">Se guarda la mejor puntuación de cada jugador. Esta página se actualiza sola.</p>
+    <p class="subtitle">Se muestra la mejor puntuación de cada estudiante y se actualiza en tiempo real.</p>
+    <p id="room-label" class="room-label" aria-live="polite"></p>
+    <p id="leaderboard-status" class="leaderboard-status" aria-live="polite"></p>
     <ol id="leaderboard-list" class="leaderboard-list"></ol>
   </div>
 </section>
 
+<script src="https://www.gstatic.com/firebasejs/10.14.1/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.14.1/firebase-auth-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.14.1/firebase-firestore-compat.js"></script>
+<script src="firebase-config.js"></script>
 <script src="leaderboard.js"></script>
 </body>
 </html>

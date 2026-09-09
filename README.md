@@ -1,73 +1,72 @@
-# Adivina la Canción — Proyecto de Casa Abierta
+# Adivina la Canción — versión multicelular
 
-Juego de adivinanza musical con nombre de jugador, temporizador, puntuación
-y una tabla de mejores puntuaciones guardada en el navegador (localStorage),
-para que la puntuación más alta de cada nombre se conserve entre partidas.
+Esta versión permite que cada estudiante juegue desde su propio celular, a su ritmo, y que todos alimenten un mismo ranking de la sala mediante Firebase Firestore.
 
-## Estructura del proyecto
+## 1. Mantén tus carpetas actuales
 
+Conserva tus carpetas:
+
+- `audio/`
+- `images/`
+
+Reemplaza los archivos principales por los de este paquete.
+
+## 2. Configura Firebase
+
+1. Entra a Firebase Console y crea un proyecto.
+2. Agrega una aplicación Web.
+3. Activa **Authentication > Sign-in method > Anonymous**.
+4. Crea **Cloud Firestore**.
+5. Copia el objeto `firebaseConfig` que entrega Firebase dentro de `firebase-config.js`.
+6. En Firestore > Rules, pega el contenido de `firestore.rules.txt` y publica las reglas.
+
+## 3. Publica el sitio
+
+Necesitas una URL pública HTTPS. Puedes usar Firebase Hosting, Netlify o GitHub Pages.
+
+Ejemplo:
+
+`https://tusitio.com/index.html?room=3b`
+
+Todos los estudiantes que entren con el mismo `room` comparten el mismo ranking. Para otra clase, usa otro nombre:
+
+`?room=3a`
+`?room=3b`
+`?room=casa-abierta`
+
+Genera el QR usando la URL completa de esa sala.
+
+## 4. Canciones: ya no necesitas escribir tres opciones falsas
+
+El juego toma automáticamente otras canciones del mismo artista como respuestas incorrectas. Por eso cada artista debería tener idealmente al menos 4 canciones.
+
+Cada canción puede quedar así:
+
+```js
+{
+  title: "Nombre de la canción",
+  audio: "audio/archivo.mp3"
+}
 ```
-song-trivia/
-├── index.html          → el juego
-├── leaderboard.html     → tabla de puntuaciones (URL aparte)
-├── style.css              → estilos
-├── script.js               → lógica del juego
-├── leaderboard.js            → lógica de la tabla de puntuaciones
-├── songs.js                   → AQUÍ agregas tus artistas y canciones
-├── images/                      → coloca aquí las fotos de los artistas
-└── audio/                        → coloca aquí tus archivos .mp3
+
+Los `options` antiguos siguen funcionando, así que no es obligatorio borrar los que ya tienes.
+
+## 5. Reproducir desde un punto concreto sin recortar el MP3
+
+También puedes añadir `start` en segundos:
+
+```js
+{
+  title: "Nombre de la canción",
+  audio: "audio/archivo.mp3",
+  start: 42
+}
 ```
 
-Como el juego se juega desde **un solo dispositivo** (la tablet o
-computadora que ustedes den), los puntajes se guardan en el propio
-navegador (`localStorage`) — no depende de internet ni de servicios
-externos, y no requiere ninguna configuración adicional.
+La pregunta comenzará aproximadamente en el segundo 42 y el temporizador del juego la detendrá al pasar a la siguiente pregunta.
 
-## Cómo agregar la foto de cada artista
+## 6. Sobre Spotify
 
-1. Descarga una foto de perfil o promocional del artista (idealmente
-   cuadrada, unos 300x300px funciona bien).
-2. Guárdala dentro de la carpeta `images/` con el nombre que indicaste
-   en `songs.js` (por ejemplo `images/tainy.jpg`).
-3. Si el archivo no aparece, la tarjeta simplemente se ve con un círculo
-   vacío del color de fondo — revisa que el nombre coincida exactamente
-   (mayúsculas/minúsculas incluidas).
+No se recomienda usar Spotify como fuente directa del audio del juego. Su API puede servir para buscar metadatos, pero los previews de 30 segundos están marcados como obsoletos y pueden venir vacíos. El Web Playback SDK requiere autenticación y Spotify Premium, lo que complica mucho un juego donde cada estudiante participa desde su propio celular.
 
-
-
-## Cómo agregar tus propias canciones
-
-1. Abre `songs.js`.
-2. Cada categoría tiene una lista `songs`. Copia el patrón de un ejemplo
-   y reemplaza:
-   - `title`: el nombre real de la canción (será la respuesta correcta).
-   - `artist`: el artista (opcional, solo informativo).
-   - `audio`: el nombre del archivo dentro de la carpeta `audio/`.
-   - `options`: tres nombres falsos de canciones (los distractores).
-3. Copia el archivo de audio correspondiente (un fragmento corto, de
-   10 a 20 segundos, en formato `.mp3`) dentro de la carpeta `audio/`.
-4. Puedes agregar tantas categorías nuevas como quieras copiando el
-   bloque `{ id, name, icon, songs: [...] }`.
-
-**Nota sobre derechos de autor:** este proyecto no incluye canciones reales
-por temas de derechos de autor. Usa grabaciones propias, música libre de
-derechos, o clips que tengas autorización de usar en tu evento.
-
-## Cómo funciona la tabla de puntuaciones
-
-- Al terminar una partida, el puntaje se guarda automáticamente — no hay
-  que presionar ningún botón.
-- Se guarda por nombre: si el mismo nombre juega varias veces, solo se
-  conserva su mejor puntuación.
-- Los datos quedan en el navegador de ese dispositivo (`localStorage`),
-  así que persisten aunque se cierre la pestaña o se apague el equipo —
-  pero son propios de ese navegador/dispositivo específico.
-- En `leaderboard.html`, cada fila tiene un botón "×" para eliminar a
-  un participante específico de la tabla, uno por uno.
-
-## Ajustes rápidos
-
-En `songs.js` también puedes cambiar:
-- `ROUNDS_PER_GAME`: cuántas canciones tiene cada partida.
-- `SECONDS_PER_QUESTION`: tiempo por pregunta.
-- `BASE_POINTS` y `SPEED_BONUS_PER_SECOND`: cómo se calculan los puntos.
+Para este proyecto, lo más estable es mantener los audios autorizados/locales y usar `start` para elegir el fragmento sin editar cada archivo.

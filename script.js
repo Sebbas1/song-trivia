@@ -1,13 +1,13 @@
 /*
-  ======================================================================
-  ADIVINA LA CANCIÓN — lógica del juego
-  ======================================================================
-  Los puntajes se guardan en Firebase Firestore (ver firebase-config.js)
-  para que todos los celulares compartan el mismo ranking.
-  ======================================================================
+  ADIVINA LA CANCIÓN — MULTICELULAR
+  Cada teléfono juega de forma independiente.
+  Los mejores puntajes de todos se comparten mediante Firebase Firestore.
+  El QR puede apuntar a: index.html?room=mi-sala
 */
 
-// ---------- Estado del juego ----------
+const ROOM_ID = getRoomId();
+const LOCAL_STORAGE_KEY = `adivinaCancion.leaderboard.${ROOM_ID}`;
+
 let state = {
   playerName: "",
   category: null,
@@ -20,9 +20,13 @@ let state = {
   answered: false
 };
 
-// ---------- Utilidades ----------
 function $(selector) { return document.querySelector(selector); }
 function $all(selector) { return document.querySelectorAll(selector); }
+
+function getRoomId() {
+  const raw = new URLSearchParams(window.location.search).get("room") || "general";
+  return raw.trim().toLowerCase().replace(/[^a-z0-9_-]+/g, "-").replace(/^-+|-+$/g, "").slice(0, 40) || "general";
+}
 
 function shuffle(array) {
   const copy = [...array];
@@ -38,7 +42,47 @@ function showScreen(id) {
   $(`#${id}`).classList.add("active");
 }
 
-// ---------- Navegación entre pantallas ----------
+function buildAnswerOptions(category, song) {
+  const autoDistractors = shuffle(
+    [...new Set(category.songs.map(item => item.title))]
+      .filter(title => title !== song.title)
+  );
+
+  const legacyDistractors = Array.isArray(song.options) ? shuffle(song.options) : [];
+  const distractors = [];
+
+  [...autoDistractors, ...legacyDistractors].forEach(title => {
+    if (title && title !== song.title && !distractors.includes(title) && distractors.length < 3) {
+      distractors.push(title);
+    }
+  });
+
+  return shuffle([song.title, ...distractors]);
+}
+
+function safePlayerKey(name) {
+  const normalized = name
+    .normalize("NFD")
+    .replace(/[\u0300-\u036f]/g, "")
+    .toLowerCase()
+    .trim()
+    .replace(/[^a-z0-9_-]+/g, "-")
+    .replace(/^-+|-+$/g, "")
+    .slice(0, 60);
+  return normalized || `jugador-${Date.now()}`;
+}
+
+function setRoomLinks() {
+  const roomText = ROOM_ID === "general" ? "Sala general" : `Sala: ${ROOM_ID}`;
+  const roomLabel = $("#room-label");
+  if (roomLabel) roomLabel.textContent = roomText;
+
+  $all(".leaderboard-link").forEach(link => {
+    link.href = `leaderboard.html?room=${encodeURIComponent(ROOM_ID)}`;
+  });
+}
+
+// ---------- Navegación ----------
 $all(".btn-back").forEach(btn => {
   btn.addEventListener("click", () => showScreen(btn.dataset.target));
 });
@@ -56,7 +100,6 @@ function confirmPlayerName() {
 }
 
 $("#btn-go-categories").addEventListener("click", confirmPlayerName);
-
 $("#player-name").addEventListener("keydown", (e) => {
   if (e.key === "Enter") {
     e.preventDefault();
@@ -72,7 +115,7 @@ $("#btn-play-again").addEventListener("click", () => {
   showScreen("screen-categories");
 });
 
-// ---------- Pantalla de artistas ----------
+// ---------- Artistas ----------
 function buildCategoryGrid() {
   const grid = $("#category-grid");
   grid.innerHTML = "";
@@ -81,22 +124,22 @@ function buildCategoryGrid() {
     tile.className = "artist-tile";
     tile.innerHTML = `
       <span class="artist-photo" style="background-image: url('${cat.image}')"></span>
-      <span class="artist-name">${cat.name}</span>
+      <span class="artist-name">${escapeHtml(cat.name)}</span>
     `;
     tile.addEventListener("click", () => startGame(cat));
     grid.appendChild(tile);
   });
 }
 
-// ---------- Iniciar partida ----------
+// ---------- Partida ----------
 function startGame(category) {
   state.category = category;
   const pool = shuffle(category.songs);
   const count = Math.min(ROUNDS_PER_GAME, pool.length);
-  state.questions = pool.slice(0, count).map(song => {
-    const options = shuffle([song.title, ...song.options]);
-    return { ...song, options };
-  });
+  state.questions = pool.slice(0, count).map(song => ({
+    ...song,
+    options: buildAnswerOptions(category, song)
+  }));
   state.currentIndex = 0;
   state.score = 0;
   state.correctCount = 0;
@@ -106,7 +149,6 @@ function startGame(category) {
   loadQuestion();
 }
 
-// ---------- Cargar pregunta ----------
 function loadQuestion() {
   clearInterval(state.timerInterval);
   state.answered = false;
@@ -117,28 +159,21 @@ function loadQuestion() {
 
   const audio = $("#audio-player");
   audio.pause();
-  audio.currentTime = 0;
   audio.src = q.audio;
   $("#btn-play-audio").classList.remove("playing");
 
-  // Se reproduce solo al entrar a la pregunta.
-  audio.play()
-    .then(() => $("#btn-play-audio").classList.add("playing"))
-    .catch(() => {
-      // Si el navegador bloquea la reproducción automática, el botón
-      // sigue disponible para que el jugador le dé play manualmente.
-      console.warn("Reproducción automática bloqueada, usa el botón de play.");
-    });
+  const beginPlayback = () => {
+    const startAt = Number(q.start || 0);
+    if (Number.isFinite(startAt) && startAt > 0) {
+      try { audio.currentTime = startAt; } catch (_) {}
+    }
+    audio.play()
+      .then(() => $("#btn-play-audio").classList.add("playing"))
+      .catch(() => console.warn("Autoplay bloqueado. El estudiante puede pulsar Play."));
+  };
 
-  // Reproduce el fragmento automáticamente al entrar a la pregunta.
-  audio.play()
-    .then(() => $("#btn-play-audio").classList.add("playing"))
-    .catch(() => {
-      // Algunos navegadores bloquean el autoplay hasta que haya
-      // habido una interacción del usuario en la página. Si pasa,
-      // el jugador puede darle clic al botón para escucharlo igual.
-      console.warn("El navegador bloqueó el autoplay. Usa el botón de reproducir.");
-    });
+  if (audio.readyState >= 1) beginPlayback();
+  else audio.addEventListener("loadedmetadata", beginPlayback, { once: true });
 
   const grid = $("#answers-grid");
   grid.innerHTML = "";
@@ -157,17 +192,15 @@ $("#btn-play-audio").addEventListener("click", () => {
   const audio = $("#audio-player");
   const btn = $("#btn-play-audio");
   if (audio.paused) {
-    audio.play().catch(() => {
-      // El archivo de audio no existe todavía: recuérdale al usuario
-      // que debe agregar sus propios clips en songs.js / carpeta audio.
-      console.warn("No se pudo reproducir el audio. Revisa la ruta en songs.js");
-    });
-    btn.classList.add("playing");
+    audio.play()
+      .then(() => btn.classList.add("playing"))
+      .catch(() => console.warn("No se pudo reproducir el audio. Revisa la ruta en songs.js."));
   } else {
     audio.pause();
     btn.classList.remove("playing");
   }
 });
+
 $("#audio-player").addEventListener("ended", () => {
   $("#btn-play-audio").classList.remove("playing");
 });
@@ -194,14 +227,13 @@ function updateTimerDisplay() {
   $("#timer-label").textContent = `${m}:${s}`;
 }
 
-// ---------- Responder ----------
+// ---------- Respuestas ----------
 function submitAnswer(button, chosen, correctTitle) {
   if (state.answered) return;
   state.answered = true;
   clearInterval(state.timerInterval);
 
-  const isCorrect = chosen === correctTitle;
-  if (isCorrect) {
+  if (chosen === correctTitle) {
     const bonus = Math.max(0, state.timeLeft) * SPEED_BONUS_PER_SECOND;
     state.score += BASE_POINTS + bonus;
     state.correctCount += 1;
@@ -217,72 +249,82 @@ function revealAnswer(clickedButton) {
 
   $all(".answer-btn").forEach(btn => {
     btn.disabled = true;
-    if (btn.textContent === q.title) {
-      btn.classList.add("correct");
-    } else if (btn === clickedButton) {
-      btn.classList.add("wrong");
-    }
+    if (btn.textContent === q.title) btn.classList.add("correct");
+    else if (btn === clickedButton) btn.classList.add("wrong");
   });
 
   setTimeout(() => {
     state.currentIndex += 1;
-    if (state.currentIndex < state.questions.length) {
-      loadQuestion();
-    } else {
-      endGame();
-    }
+    if (state.currentIndex < state.questions.length) loadQuestion();
+    else endGame();
   }, 1400);
 }
 
-// ---------- Fin de partida ----------
-function endGame() {
+// ---------- Fin y ranking compartido ----------
+async function endGame() {
   $("#result-name").textContent = `¡Bien jugado, ${state.playerName}!`;
   $("#final-score").textContent = state.score;
-  $("#result-detail").textContent =
-    `Aciertos: ${state.correctCount} de ${state.questions.length}`;
-  // Se guarda automáticamente apenas termina la partida, sin necesidad
-  // de que el jugador presione ningún botón.
-  saveScore(state.playerName, state.score);
+  $("#result-detail").textContent = `Aciertos: ${state.correctCount} de ${state.questions.length}`;
+  $("#save-status").textContent = "Guardando puntuación…";
   showScreen("screen-results");
+
+  const savedOnline = await saveScore(state.playerName, state.score, state.category.name);
+  $("#save-status").textContent = savedOnline
+    ? "✓ Puntuación guardada en el marcador de la sala"
+    : "✓ Puntuación guardada solo en este celular (Firebase pendiente)";
 }
 
-// ---------- Tabla de puntuaciones (localStorage) ----------
-// Como un solo dispositivo (tablet o computadora) es el que usan todos
-// los participantes por turnos, guardar en el propio navegador es
-// suficiente: no depende de internet ni de servicios externos.
-const STORAGE_KEY = "adivinaCancion.leaderboard";
+async function saveScore(name, score, artist) {
+  const firebaseOk = await window.firebaseReady;
+  if (!firebaseOk || !window.gameDb) {
+    saveScoreLocally(name, score, artist);
+    return false;
+  }
 
-function loadLeaderboard() {
+  const ref = window.gameDb
+    .collection("rooms")
+    .doc(ROOM_ID)
+    .collection("scores")
+    .doc(safePlayerKey(name));
+
   try {
-    const raw = localStorage.getItem(STORAGE_KEY);
-    return raw ? JSON.parse(raw) : [];
-  } catch (e) {
-    return [];
+    await window.gameDb.runTransaction(async transaction => {
+      const current = await transaction.get(ref);
+      if (!current.exists || score > Number(current.data().score || 0)) {
+        transaction.set(ref, {
+          name,
+          score,
+          artist,
+          date: firebase.firestore.FieldValue.serverTimestamp()
+        });
+      }
+    });
+    return true;
+  } catch (error) {
+    console.error("No se pudo guardar en Firestore:", error);
+    saveScoreLocally(name, score, artist);
+    return false;
   }
 }
 
-function saveScore(name, score) {
-  const board = loadLeaderboard();
-  const existing = board.find(
-    entry => entry.name.toLowerCase() === name.toLowerCase()
-  );
-  if (existing) {
-    if (score > existing.score) {
-      existing.score = score;
-      existing.date = new Date().toISOString();
-    }
-  } else {
-    board.push({ name, score, date: new Date().toISOString() });
-  }
+function saveScoreLocally(name, score, artist) {
+  let board = [];
+  try {
+    board = JSON.parse(localStorage.getItem(LOCAL_STORAGE_KEY) || "[]");
+  } catch (_) {}
+
+  const existing = board.find(entry => entry.name.toLowerCase() === name.toLowerCase());
+  if (!existing) board.push({ name, score, artist, date: new Date().toISOString() });
+  else if (score > existing.score) Object.assign(existing, { score, artist, date: new Date().toISOString() });
+
   board.sort((a, b) => b.score - a.score);
-  localStorage.setItem(STORAGE_KEY, JSON.stringify(board));
+  localStorage.setItem(LOCAL_STORAGE_KEY, JSON.stringify(board));
 }
 
 function escapeHtml(str) {
   const div = document.createElement("div");
-  div.textContent = str;
+  div.textContent = String(str ?? "");
   return div.innerHTML;
 }
 
-// ---------- Inicio ----------
-// (No hace falta nada aquí: la primera pantalla ya está lista en el HTML.)
+setRoomLinks();

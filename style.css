@@ -426,3 +426,34 @@ input[type="text"]:focus {
   .game-header { flex-direction: column; text-align: center; }
   .final-score { font-size: 2.6rem; }
 }
+
+/* ---- Sala compartida / estado en línea ---- */
+.room-label {
+  display: inline-block;
+  margin: -10px 0 20px;
+  padding: 6px 12px;
+  border-radius: 999px;
+  border: 1px solid rgba(255,255,255,0.12);
+  color: var(--gold-soft);
+  background: rgba(255,255,255,0.04);
+  font-size: 0.82rem;
+  font-weight: 700;
+}
+
+.leaderboard-status {
+  color: var(--green);
+  font-size: 0.85rem;
+  margin: -10px 0 14px;
+}
+
+.lb-name {
+  min-width: 0;
+}
+
+.lb-artist {
+  display: block;
+  margin-top: 2px;
+  color: var(--ink-dim);
+  font-weight: 500;
+  font-size: 0.75rem;
+}

@@ -16,19 +16,17 @@
 <section id="screen-home" class="screen active">
   <div class="card home-card">
     <div class="brand">
-      <span class="brand-mark">
-        <span class="brand-dot"></span>
-      </span>
+      <span class="brand-mark"><span class="brand-dot"></span></span>
       <h1>Adivina la Canción</h1>
     </div>
     <p class="subtitle">Escucha el fragmento y adivina el tema antes de que se acabe el tiempo.</p>
+    <p id="room-label" class="room-label" aria-live="polite"></p>
 
     <label class="field-label" for="player-name">Tu nombre</label>
-    <input id="player-name" type="text" placeholder="Escribe tu nombre..." maxlength="20" autocomplete="off">
+    <input id="player-name" type="text" placeholder="Escribe tu nombre..." maxlength="30" autocomplete="off">
 
     <button id="btn-go-categories" class="btn-primary">Continuar</button>
-
-    <a href="leaderboard.html" class="btn-ghost link-btn">Ver tabla de puntuaciones</a>
+    <a href="leaderboard.html" class="btn-ghost link-btn leaderboard-link">Ver tabla de puntuaciones</a>
   </div>
 </section>
 
@@ -80,14 +78,19 @@
     <p class="final-score"><span id="final-score">0</span><small>pts</small></p>
     <p class="subtitle" id="result-detail">Aciertos: 0 de 0</p>
 
-    <p class="save-confirm">✓ Puntuación guardada en la tabla</p>
+    <p class="save-confirm" id="save-status">Guardando puntuación…</p>
     <button id="btn-play-again" class="btn-primary">Jugar otra vez</button>
-    <a href="leaderboard.html" class="btn-ghost link-btn">Ver tabla de puntuaciones</a>
+    <a href="leaderboard.html" class="btn-ghost link-btn leaderboard-link">Ver tabla de puntuaciones</a>
   </div>
 </section>
 
 <audio id="audio-player" preload="none"></audio>
 
+<!-- Firebase: versión compat para poder usar scripts JS normales, sin build -->
+<script src="https://www.gstatic.com/firebasejs/10.14.1/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.14.1/firebase-auth-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.14.1/firebase-firestore-compat.js"></script>
+<script src="firebase-config.js"></script>
 <script src="songs.js"></script>
 <script src="script.js"></script>
 </body>
