@@ -1,17 +1,4 @@
-/*
-  CONFIGURACIÓN FIREBASE
-  1) Crea un proyecto en Firebase.
-  2) Activa Authentication > Anonymous.
-  3) Crea Cloud Firestore.
-  4) En Project settings > Your apps > Web app, copia aquí firebaseConfig.
-*/
 
-// Import the functions you need from the SDKs you need
-import { initializeApp } from "firebase/app";
-// TODO: Add SDKs for Firebase products that you want to use
-// https://firebase.google.com/docs/web/setup#available-libraries
-
-// Your web app's Firebase configuration
 const firebaseConfig = {
   apiKey: "AIzaSyDkjOpPPO_0ANowaHxsWgsQsGxBf7y6v7M",
   authDomain: "adivina-la-cancion-8cc62.firebaseapp.com",
@@ -21,9 +8,6 @@ const firebaseConfig = {
   appId: "1:100344908259:web:786b2d1f04660f3e86b8d6"
 };
 
-// Initialize Firebase
-const app = initializeApp(firebaseConfig);
-
 const firebaseConfigured = !Object.values(firebaseConfig)
   .some(value => String(value).startsWith("PEGA_AQUI"));
 
@@ -31,14 +15,29 @@ window.firebaseConfigured = firebaseConfigured;
 window.firebaseReady = Promise.resolve(false);
 
 if (firebaseConfigured) {
+
   firebase.initializeApp(firebaseConfig);
+
   window.gameDb = firebase.firestore();
-  window.firebaseReady = firebase.auth().signInAnonymously()
-    .then(() => true)
+
+  window.firebaseReady = firebase.auth()
+    .signInAnonymously()
+    .then(() => {
+      console.log("Firebase conectado correctamente.");
+      return true;
+    })
     .catch(error => {
-      console.error("No se pudo iniciar Firebase de forma anónima:", error);
+      console.error(
+        "No se pudo iniciar Firebase de forma anónima:",
+        error
+      );
       return false;
     });
+
 } else {
-  console.warn("Firebase aún no está configurado. El juego funcionará, pero el ranking será local en cada celular.");
+
+  console.warn(
+    "Firebase aún no está configurado."
+  );
+
 }
