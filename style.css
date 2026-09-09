@@ -427,24 +427,39 @@ input[type="text"]:focus {
   .final-score { font-size: 2.6rem; }
 }
 
-/* ---- Sala compartida / estado en línea ---- */
-.room-label {
-  display: inline-block;
-  margin: -10px 0 20px;
-  padding: 6px 12px;
-  border-radius: 999px;
-  border: 1px solid rgba(255,255,255,0.12);
-  color: var(--gold-soft);
-  background: rgba(255,255,255,0.04);
-  font-size: 0.82rem;
-  font-weight: 700;
+/* ======================================================================
+   SALAS CONTROLADAS POR HOST
+   ====================================================================== */
+
+button:disabled,
+input:disabled {
+  opacity: 0.52;
+  cursor: not-allowed;
 }
 
-.leaderboard-status {
-  color: var(--green);
-  font-size: 0.85rem;
-  margin: -10px 0 14px;
+.room-label {
+  display: inline-block;
+  margin: 4px 0 14px;
+  padding: 7px 14px;
+  border: 1px solid rgba(245,197,24,0.28);
+  border-radius: 999px;
+  color: var(--gold);
+  font-weight: 700;
+  font-size: 0.86rem;
 }
+
+.room-access-message,
+.leaderboard-status,
+.host-status {
+  margin: 0 0 18px;
+  color: var(--ink-dim);
+  line-height: 1.45;
+  font-size: 0.92rem;
+}
+
+.room-access-message[data-status="open"] { color: var(--green); }
+.room-access-message[data-status="closed"],
+.room-access-message[data-status="error"] { color: #ff9ab0; }
 
 .lb-name {
   min-width: 0;
@@ -453,7 +468,217 @@ input[type="text"]:focus {
 .lb-artist {
   display: block;
   margin-top: 2px;
+  font-size: 0.76rem;
   color: var(--ink-dim);
   font-weight: 500;
-  font-size: 0.75rem;
+}
+
+.host-screen {
+  max-width: 980px;
+}
+
+.host-card {
+  max-width: 980px;
+}
+
+.host-brand {
+  justify-content: flex-start;
+}
+
+.host-create-row {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+  gap: 14px;
+  align-items: end;
+  margin: 22px 0 6px;
+}
+
+.host-room-field {
+  min-width: 0;
+}
+
+.host-room-field input,
+.host-url {
+  margin-bottom: 0;
+}
+
+.host-inline-btn {
+  width: auto;
+  min-width: 190px;
+  margin-top: 0;
+  min-height: 50px;
+}
+
+.host-status[data-type="ok"] { color: var(--green); }
+.host-status[data-type="error"] { color: #ff9ab0; }
+
+.host-room-panel {
+  margin-top: 26px;
+}
+
+.host-room-heading,
+.host-section-heading {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+  margin-bottom: 18px;
+}
+
+.host-eyebrow {
+  display: block;
+  color: var(--ink-dim);
+  font-size: 0.72rem;
+  font-weight: 800;
+  letter-spacing: 0.12em;
+  margin-bottom: 2px;
+}
+
+.room-state {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 34px;
+  padding: 6px 14px;
+  border-radius: 999px;
+  border: 1px solid rgba(255,255,255,0.12);
+  font-size: 0.82rem;
+  font-weight: 800;
+}
+
+.room-state.waiting { color: var(--gold); border-color: rgba(245,197,24,0.35); }
+.room-state.open { color: var(--green); border-color: rgba(53,210,154,0.4); }
+.room-state.closed { color: #ff9ab0; border-color: rgba(255,95,158,0.4); }
+
+.host-main-grid {
+  display: grid;
+  grid-template-columns: minmax(280px, 0.85fr) minmax(300px, 1.15fr);
+  gap: 20px;
+}
+
+.qr-panel,
+.host-controls-panel,
+.host-leaderboard-wrap,
+.host-note {
+  background: rgba(14,15,34,0.42);
+  border: 1px solid rgba(255,255,255,0.07);
+  border-radius: var(--radius-md);
+  padding: 22px;
+}
+
+.qr-panel {
+  text-align: center;
+}
+
+.qr-code {
+  width: 244px;
+  min-height: 244px;
+  margin: 0 auto 14px;
+  padding: 12px;
+  border-radius: 14px;
+  background: #fff;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: #1a1a1a;
+}
+
+.qr-code img,
+.qr-code canvas {
+  max-width: 220px;
+  width: 100%;
+  height: auto;
+}
+
+.qr-caption,
+.host-help {
+  color: var(--ink-dim);
+  font-size: 0.88rem;
+  line-height: 1.5;
+}
+
+.host-url {
+  width: 100%;
+  padding: 12px 13px;
+  border-radius: 12px;
+  border: 1px solid rgba(255,255,255,0.12);
+  background: var(--bg-1);
+  color: var(--ink);
+  font-family: inherit;
+  font-size: 0.84rem;
+}
+
+.host-controls-panel h3 {
+  margin: 0 0 8px;
+  font-family: 'Baloo 2', sans-serif;
+  font-size: 1.2rem;
+}
+
+.host-controls-panel .btn-primary,
+.host-controls-panel .btn-ghost,
+.qr-panel .btn-ghost {
+  margin-top: 10px;
+}
+
+.btn-ghost.warning {
+  color: var(--gold-soft);
+  border-color: rgba(245,197,24,0.22);
+}
+
+.btn-ghost.warning:hover {
+  border-color: var(--gold);
+  color: var(--gold);
+}
+
+.host-leaderboard-wrap {
+  margin-top: 20px;
+}
+
+.host-leaderboard-wrap .leaderboard-list {
+  margin-bottom: 0;
+}
+
+.compact-link {
+  width: auto;
+  margin-top: 0;
+  padding: 10px 14px;
+  font-size: 0.88rem;
+}
+
+.host-note {
+  margin-top: 20px;
+  color: var(--ink-dim);
+  line-height: 1.5;
+  font-size: 0.86rem;
+}
+
+.host-note strong { color: var(--ink); }
+
+@media (max-width: 760px) {
+  .host-create-row,
+  .host-main-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .host-inline-btn {
+    width: 100%;
+  }
+
+  .host-room-heading,
+  .host-section-heading {
+    align-items: flex-start;
+    flex-direction: column;
+  }
+
+  .compact-link {
+    width: 100%;
+    text-align: center;
+  }
+}
+
+@media (max-width: 420px) {
+  .qr-code {
+    width: 100%;
+    min-height: 0;
+  }
 }

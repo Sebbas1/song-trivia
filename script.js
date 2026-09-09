@@ -1,12 +1,13 @@
 /*
-  ADIVINA LA CANCIÓN — MULTICELULAR
-  Cada teléfono juega de forma independiente.
-  Los mejores puntajes de todos se comparten mediante Firebase Firestore.
-  El QR puede apuntar a: index.html?room=mi-sala
+  ADIVINA LA CANCIÓN — SALAS CONTROLADAS POR HOST
+  El alumno entra con ?room=nombre-sala.
+  Solo puede comenzar cuando el host marca la sala como "open" en Firestore.
 */
 
 const ROOM_ID = getRoomId();
 const LOCAL_STORAGE_KEY = `adivinaCancion.leaderboard.${ROOM_ID}`;
+let unsubscribeRoom = null;
+let roomIsOpen = false;
 
 let state = {
   playerName: "",
@@ -44,50 +45,74 @@ function showScreen(id) {
 
 function buildAnswerOptions(category, song) {
   const autoDistractors = shuffle(
-    [...new Set(category.songs.map(item => item.title))]
-      .filter(title => title !== song.title)
+    [...new Set(category.songs.map(item => item.title))].filter(title => title !== song.title)
   );
-
   const legacyDistractors = Array.isArray(song.options) ? shuffle(song.options) : [];
   const distractors = [];
-
   [...autoDistractors, ...legacyDistractors].forEach(title => {
     if (title && title !== song.title && !distractors.includes(title) && distractors.length < 3) {
       distractors.push(title);
     }
   });
-
   return shuffle([song.title, ...distractors]);
 }
 
-function safePlayerKey(name) {
-  const normalized = name
-    .normalize("NFD")
-    .replace(/[\u0300-\u036f]/g, "")
-    .toLowerCase()
-    .trim()
-    .replace(/[^a-z0-9_-]+/g, "-")
-    .replace(/^-+|-+$/g, "")
-    .slice(0, 60);
-  return normalized || `jugador-${Date.now()}`;
-}
-
 function setRoomLinks() {
-  const roomText = ROOM_ID === "general" ? "Sala general" : `Sala: ${ROOM_ID}`;
-  const roomLabel = $("#room-label");
-  if (roomLabel) roomLabel.textContent = roomText;
-
+  $("#room-label").textContent = ROOM_ID === "general" ? "Sala general" : `Sala: ${ROOM_ID}`;
   $all(".leaderboard-link").forEach(link => {
     link.href = `leaderboard.html?room=${encodeURIComponent(ROOM_ID)}`;
   });
 }
 
-// ---------- Navegación ----------
+function setRoomAccess(status, message) {
+  roomIsOpen = status === "open";
+  const input = $("#player-name");
+  const button = $("#btn-go-categories");
+  input.disabled = !roomIsOpen;
+  button.disabled = !roomIsOpen;
+  $("#room-access-message").textContent = message;
+  $("#room-access-message").dataset.status = status;
+}
+
+async function initRoomControl() {
+  setRoomLinks();
+  const firebaseOk = await window.firebaseReady;
+
+  if (!firebaseOk || !window.gameDb) {
+    setRoomAccess("error", "Firebase no está conectado. Esta sala no puede iniciar todavía.");
+    return;
+  }
+
+  const roomRef = window.gameDb.collection("rooms").doc(ROOM_ID);
+  unsubscribeRoom = roomRef.onSnapshot(snapshot => {
+    if (!snapshot.exists) {
+      setRoomAccess("missing", "Esta sala todavía no existe. Escanea el QR generado por el host.");
+      return;
+    }
+
+    const room = snapshot.data();
+    if (room.status === "open") {
+      setRoomAccess("open", "✓ Sala abierta. Ya puedes jugar.");
+    } else if (room.status === "closed") {
+      setRoomAccess("closed", "La sala está cerrada. Espera indicaciones del profesor.");
+    } else {
+      setRoomAccess("waiting", "Esperando a que el profesor inicie la sala…");
+    }
+  }, error => {
+    console.error("No se pudo leer el estado de la sala:", error);
+    setRoomAccess("error", "No se pudo comprobar la sala. Revisa la conexión.");
+  });
+}
+
 $all(".btn-back").forEach(btn => {
   btn.addEventListener("click", () => showScreen(btn.dataset.target));
 });
 
 function confirmPlayerName() {
+  if (!roomIsOpen) {
+    $("#room-access-message").textContent = "El profesor todavía no ha iniciado la sala.";
+    return;
+  }
   const name = $("#player-name").value.trim();
   if (!name) {
     $("#player-name").focus();
@@ -111,11 +136,14 @@ $("#player-name").addEventListener("input", () => {
 });
 
 $("#btn-play-again").addEventListener("click", () => {
+  if (!roomIsOpen) {
+    showScreen("screen-home");
+    return;
+  }
   buildCategoryGrid();
   showScreen("screen-categories");
 });
 
-// ---------- Artistas ----------
 function buildCategoryGrid() {
   const grid = $("#category-grid");
   grid.innerHTML = "";
@@ -131,8 +159,11 @@ function buildCategoryGrid() {
   });
 }
 
-// ---------- Partida ----------
 function startGame(category) {
+  if (!roomIsOpen) {
+    showScreen("screen-home");
+    return;
+  }
   state.category = category;
   const pool = shuffle(category.songs);
   const count = Math.min(ROUNDS_PER_GAME, pool.length);
@@ -184,7 +215,6 @@ function loadQuestion() {
     btn.addEventListener("click", () => submitAnswer(btn, option, q.title));
     grid.appendChild(btn);
   });
-
   startTimer();
 }
 
@@ -192,8 +222,7 @@ $("#btn-play-audio").addEventListener("click", () => {
   const audio = $("#audio-player");
   const btn = $("#btn-play-audio");
   if (audio.paused) {
-    audio.play()
-      .then(() => btn.classList.add("playing"))
+    audio.play().then(() => btn.classList.add("playing"))
       .catch(() => console.warn("No se pudo reproducir el audio. Revisa la ruta en songs.js."));
   } else {
     audio.pause();
@@ -205,7 +234,6 @@ $("#audio-player").addEventListener("ended", () => {
   $("#btn-play-audio").classList.remove("playing");
 });
 
-// ---------- Temporizador ----------
 function startTimer() {
   state.timeLeft = SECONDS_PER_QUESTION;
   updateTimerDisplay();
@@ -227,12 +255,10 @@ function updateTimerDisplay() {
   $("#timer-label").textContent = `${m}:${s}`;
 }
 
-// ---------- Respuestas ----------
 function submitAnswer(button, chosen, correctTitle) {
   if (state.answered) return;
   state.answered = true;
   clearInterval(state.timerInterval);
-
   if (chosen === correctTitle) {
     const bonus = Math.max(0, state.timeLeft) * SPEED_BONUS_PER_SECOND;
     state.score += BASE_POINTS + bonus;
@@ -246,13 +272,11 @@ function revealAnswer(clickedButton) {
   const q = state.questions[state.currentIndex];
   $("#audio-player").pause();
   $("#btn-play-audio").classList.remove("playing");
-
   $all(".answer-btn").forEach(btn => {
     btn.disabled = true;
     if (btn.textContent === q.title) btn.classList.add("correct");
     else if (btn === clickedButton) btn.classList.add("wrong");
   });
-
   setTimeout(() => {
     state.currentIndex += 1;
     if (state.currentIndex < state.questions.length) loadQuestion();
@@ -260,7 +284,6 @@ function revealAnswer(clickedButton) {
   }, 1400);
 }
 
-// ---------- Fin y ranking compartido ----------
 async function endGame() {
   $("#result-name").textContent = `¡Bien jugado, ${state.playerName}!`;
   $("#final-score").textContent = state.score;
@@ -271,12 +294,13 @@ async function endGame() {
   const savedOnline = await saveScore(state.playerName, state.score, state.category.name);
   $("#save-status").textContent = savedOnline
     ? "✓ Puntuación guardada en el marcador de la sala"
-    : "✓ Puntuación guardada solo en este celular (Firebase pendiente)";
+    : "No se pudo guardar la puntuación compartida.";
 }
 
 async function saveScore(name, score, artist) {
   const firebaseOk = await window.firebaseReady;
-  if (!firebaseOk || !window.gameDb) {
+  const user = firebase.auth().currentUser;
+  if (!firebaseOk || !window.gameDb || !user) {
     saveScoreLocally(name, score, artist);
     return false;
   }
@@ -285,13 +309,14 @@ async function saveScore(name, score, artist) {
     .collection("rooms")
     .doc(ROOM_ID)
     .collection("scores")
-    .doc(safePlayerKey(name));
+    .doc(user.uid);
 
   try {
     await window.gameDb.runTransaction(async transaction => {
       const current = await transaction.get(ref);
       if (!current.exists || score > Number(current.data().score || 0)) {
         transaction.set(ref, {
+          uid: user.uid,
           name,
           score,
           artist,
@@ -309,14 +334,10 @@ async function saveScore(name, score, artist) {
 
 function saveScoreLocally(name, score, artist) {
   let board = [];
-  try {
-    board = JSON.parse(localStorage.getItem(LOCAL_STORAGE_KEY) || "[]");
-  } catch (_) {}
-
+  try { board = JSON.parse(localStorage.getItem(LOCAL_STORAGE_KEY) || "[]"); } catch (_) {}
   const existing = board.find(entry => entry.name.toLowerCase() === name.toLowerCase());
   if (!existing) board.push({ name, score, artist, date: new Date().toISOString() });
   else if (score > existing.score) Object.assign(existing, { score, artist, date: new Date().toISOString() });
-
   board.sort((a, b) => b.score - a.score);
   localStorage.setItem(LOCAL_STORAGE_KEY, JSON.stringify(board));
 }
@@ -327,4 +348,8 @@ function escapeHtml(str) {
   return div.innerHTML;
 }
 
-setRoomLinks();
+window.addEventListener("beforeunload", () => {
+  if (unsubscribeRoom) unsubscribeRoom();
+});
+
+initRoomControl();

@@ -9,10 +9,8 @@
 <link href="https://fonts.googleapis.com/css2?family=Baloo+2:wght@500;700;800&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
 </head>
 <body>
-
 <div class="disc" aria-hidden="true"></div>
 
-<!-- PANTALLA: INICIO -->
 <section id="screen-home" class="screen active">
   <div class="card home-card">
     <div class="brand">
@@ -21,16 +19,16 @@
     </div>
     <p class="subtitle">Escucha el fragmento y adivina el tema antes de que se acabe el tiempo.</p>
     <p id="room-label" class="room-label" aria-live="polite"></p>
+    <p id="room-access-message" class="room-access-message" aria-live="polite">Comprobando la sala…</p>
 
     <label class="field-label" for="player-name">Tu nombre</label>
-    <input id="player-name" type="text" placeholder="Escribe tu nombre..." maxlength="30" autocomplete="off">
+    <input id="player-name" type="text" placeholder="Escribe tu nombre..." maxlength="30" autocomplete="off" disabled>
 
-    <button id="btn-go-categories" class="btn-primary">Continuar</button>
+    <button id="btn-go-categories" class="btn-primary" disabled>Continuar</button>
     <a href="leaderboard.html" class="btn-ghost link-btn leaderboard-link">Ver tabla de puntuaciones</a>
   </div>
 </section>
 
-<!-- PANTALLA: CATEGORIAS -->
 <section id="screen-categories" class="screen">
   <div class="card wide-card">
     <button class="btn-back" data-target="screen-home">&larr; Volver</button>
@@ -40,14 +38,12 @@
   </div>
 </section>
 
-<!-- PANTALLA: JUEGO -->
 <section id="screen-game" class="screen">
   <div class="card game-card">
     <div class="game-header">
       <div class="track-badge">
         <button id="btn-play-audio" class="play-button" aria-label="Reproducir fragmento">
-          <span class="ring"></span>
-          <span class="dot"></span>
+          <span class="ring"></span><span class="dot"></span>
         </button>
       </div>
       <div class="question-info">
@@ -70,7 +66,6 @@
   </div>
 </section>
 
-<!-- PANTALLA: RESULTADOS -->
 <section id="screen-results" class="screen">
   <div class="card home-card">
     <span class="pill result-pill">¡Partida terminada!</span>
@@ -85,8 +80,6 @@
 </section>
 
 <audio id="audio-player" preload="none"></audio>
-
-<!-- Firebase: versión compat para poder usar scripts JS normales, sin build -->
 <script src="https://www.gstatic.com/firebasejs/10.14.1/firebase-app-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/10.14.1/firebase-auth-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/10.14.1/firebase-firestore-compat.js"></script>

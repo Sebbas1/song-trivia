@@ -1,34 +1,26 @@
-/*
-  TABLA DE PUNTUACIONES MULTICELULAR
-  Lee Firestore en tiempo real. El parámetro ?room= define la sala.
-*/
-
+/* Tabla pública de una sala. Lee Firestore en tiempo real. */
 const ROOM_ID = getRoomId();
 const LOCAL_STORAGE_KEY = `adivinaCancion.leaderboard.${ROOM_ID}`;
 let unsubscribeLeaderboard = null;
+let unsubscribeRoom = null;
 
 function $(selector) { return document.querySelector(selector); }
-
 function getRoomId() {
   const raw = new URLSearchParams(window.location.search).get("room") || "general";
   return raw.trim().toLowerCase().replace(/[^a-z0-9_-]+/g, "-").replace(/^-+|-+$/g, "").slice(0, 40) || "general";
 }
-
 function escapeHtml(str) {
   const div = document.createElement("div");
   div.textContent = String(str ?? "");
   return div.innerHTML;
 }
-
 function renderLeaderboard(board) {
   const list = $("#leaderboard-list");
   list.innerHTML = "";
-
   if (!board.length) {
     list.innerHTML = `<li class="leaderboard-empty" style="justify-content:center;">Todavía no hay puntuaciones en esta sala.</li>`;
     return;
   }
-
   board.forEach((entry, index) => {
     const li = document.createElement("li");
     li.innerHTML = `
@@ -39,14 +31,11 @@ function renderLeaderboard(board) {
     list.appendChild(li);
   });
 }
-
 function loadLocalLeaderboard() {
   try {
     return JSON.parse(localStorage.getItem(LOCAL_STORAGE_KEY) || "[]")
       .sort((a, b) => Number(b.score || 0) - Number(a.score || 0));
-  } catch (_) {
-    return [];
-  }
+  } catch (_) { return []; }
 }
 
 async function initLeaderboard() {
@@ -60,17 +49,22 @@ async function initLeaderboard() {
     return;
   }
 
-  $("#leaderboard-status").textContent = "Marcador en vivo";
-  const query = window.gameDb
-    .collection("rooms")
-    .doc(ROOM_ID)
-    .collection("scores")
-    .orderBy("score", "desc")
-    .limit(100);
+  const roomRef = window.gameDb.collection("rooms").doc(ROOM_ID);
+  unsubscribeRoom = roomRef.onSnapshot(snapshot => {
+    if (!snapshot.exists) {
+      $("#leaderboard-status").textContent = "Esta sala no existe.";
+      return;
+    }
+    const status = snapshot.data().status;
+    const label = status === "open" ? "Sala abierta · marcador en vivo"
+      : status === "closed" ? "Sala cerrada · resultados finales"
+      : "Sala en espera · marcador en vivo";
+    $("#leaderboard-status").textContent = label;
+  });
 
+  const query = roomRef.collection("scores").orderBy("score", "desc").limit(100);
   unsubscribeLeaderboard = query.onSnapshot(snapshot => {
-    const board = snapshot.docs.map(doc => doc.data());
-    renderLeaderboard(board);
+    renderLeaderboard(snapshot.docs.map(doc => doc.data()));
   }, error => {
     console.error("Error leyendo el ranking:", error);
     $("#leaderboard-status").textContent = "No se pudo cargar el marcador compartido.";
@@ -79,6 +73,7 @@ async function initLeaderboard() {
 
 window.addEventListener("beforeunload", () => {
   if (unsubscribeLeaderboard) unsubscribeLeaderboard();
+  if (unsubscribeRoom) unsubscribeRoom();
 });
 
 initLeaderboard();

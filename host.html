@@ -1,0 +1,84 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Host — Adivina la Canción</title>
+<link rel="stylesheet" href="style.css">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Baloo+2:wght@500;700;800&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+</head>
+<body>
+<div class="disc" aria-hidden="true"></div>
+
+<section class="screen active host-screen">
+  <div class="card host-card">
+    <div class="brand host-brand">
+      <span class="brand-mark"><span class="brand-dot"></span></span>
+      <h1>Control de sala</h1>
+    </div>
+    <p class="subtitle">Crea una sala, proyecta el QR y decide cuándo pueden comenzar los estudiantes.</p>
+
+    <div class="host-create-row">
+      <div class="host-room-field">
+        <label class="field-label" for="host-room-id">Nombre de la sala</label>
+        <input id="host-room-id" type="text" maxlength="40" placeholder="Ej. 3b, casa-abierta" autocomplete="off">
+      </div>
+      <button id="btn-open-room" class="btn-primary host-inline-btn" type="button">Crear / abrir sala</button>
+    </div>
+
+    <p id="host-status" class="host-status" aria-live="polite">Conectando con Firebase…</p>
+
+    <div id="host-room-panel" class="host-room-panel" hidden>
+      <div class="host-room-heading">
+        <div>
+          <span class="host-eyebrow">SALA</span>
+          <h2 id="host-room-name">—</h2>
+        </div>
+        <span id="host-room-state" class="room-state waiting">En espera</span>
+      </div>
+
+      <div class="host-main-grid">
+        <div class="qr-panel">
+          <div id="qr-code" class="qr-code" aria-label="Código QR de acceso"></div>
+          <p class="qr-caption">Los estudiantes escanean este QR para entrar a la sala.</p>
+          <input id="student-url" class="host-url" type="text" readonly aria-label="Enlace para estudiantes">
+          <button id="btn-copy-link" class="btn-ghost" type="button">Copiar enlace</button>
+        </div>
+
+        <div class="host-controls-panel">
+          <h3>Control de la partida</h3>
+          <p id="host-control-note" class="host-help">Mientras esté en espera, los estudiantes pueden abrir el enlace pero no comenzar.</p>
+          <button id="btn-start-room" class="btn-primary" type="button">▶ Iniciar sala</button>
+          <button id="btn-close-room" class="btn-ghost" type="button">■ Cerrar sala</button>
+          <button id="btn-reset-room" class="btn-ghost warning" type="button">↻ Reiniciar sala y borrar puntuaciones</button>
+          <button id="btn-delete-room" class="btn-ghost danger" type="button">Eliminar sala y todos sus datos</button>
+        </div>
+      </div>
+
+      <div class="host-leaderboard-wrap">
+        <div class="host-section-heading">
+          <div>
+            <span class="host-eyebrow">MARCADOR</span>
+            <h2>Resultados en vivo</h2>
+          </div>
+          <a id="host-public-board" class="btn-ghost compact-link" href="leaderboard.html" target="_blank" rel="noopener">Abrir marcador público</a>
+        </div>
+        <ol id="host-leaderboard-list" class="leaderboard-list"></ol>
+      </div>
+    </div>
+
+    <div class="host-note">
+      <strong>Importante:</strong> el control de esta sala queda asociado a este navegador mediante el usuario anónimo de Firebase. Usa este mismo navegador para iniciar, reiniciar o eliminar la sala.
+    </div>
+  </div>
+</section>
+
+<script src="https://www.gstatic.com/firebasejs/10.14.1/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.14.1/firebase-auth-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.14.1/firebase-firestore-compat.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
+<script src="firebase-config.js"></script>
+<script src="host.js"></script>
+</body>
+</html>

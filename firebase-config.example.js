@@ -1,10 +1,4 @@
-/*
-  CONFIGURACIÓN FIREBASE
-  1) Crea un proyecto en Firebase.
-  2) Activa Authentication > Anonymous.
-  3) Crea Cloud Firestore.
-  4) En Project settings > Your apps > Web app, copia aquí firebaseConfig.
-*/
+
 
 // Import the functions you need from the SDKs you need
 import { initializeApp } from "firebase/app";
