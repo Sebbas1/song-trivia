@@ -11,28 +11,56 @@
 <body>
 <div class="disc" aria-hidden="true"></div>
 
-<section class="screen active host-screen">
-  <div class="card host-card">
-    <div class="brand host-brand">
+<!-- LOGIN DEL HOST -->
+<section id="host-login-screen" class="screen active">
+  <div class="card home-card host-login-card">
+    <div class="brand">
       <span class="brand-mark"><span class="brand-dot"></span></span>
-      <h1>Control de sala</h1>
+      <h1>Acceso del host</h1>
     </div>
-    <p class="subtitle">Crea una sala, proyecta el QR y decide cuándo pueden comenzar los estudiantes.</p>
+    <p class="subtitle">Ingresa para administrar salas, el QR permanente y el ranking general.</p>
+
+    <form id="host-login-form" novalidate>
+      <label class="field-label" for="host-username">Usuario</label>
+      <input id="host-username" type="text" value="root" maxlength="30" autocomplete="username">
+
+      <label class="field-label" for="host-password">Contraseña</label>
+      <input id="host-password" type="password" placeholder="Contraseña" autocomplete="current-password">
+
+      <button id="btn-host-login" class="btn-primary" type="submit">Ingresar</button>
+      <p id="host-login-status" class="host-login-status" aria-live="polite"></p>
+    </form>
+  </div>
+</section>
+
+<!-- CONTROL DEL HOST -->
+<section id="host-control-screen" class="screen host-screen">
+  <div class="card host-card">
+    <div class="host-topbar">
+      <div class="brand host-brand">
+        <span class="brand-mark"><span class="brand-dot"></span></span>
+        <h1>Control de sala</h1>
+      </div>
+      <button id="btn-host-logout" class="btn-ghost compact-link" type="button">Cerrar sesión</button>
+    </div>
+
+    <p class="subtitle host-subtitle">Selecciona el nombre de la sala activa. El QR de estudiantes es permanente y siempre los conecta con la sala que tengas seleccionada.</p>
 
     <div class="host-create-row">
       <div class="host-room-field">
-        <label class="field-label" for="host-room-id">Nombre de la sala</label>
-        <input id="host-room-id" type="text" maxlength="40" placeholder="Ej. 3b, casa-abierta" autocomplete="off">
+        <label class="field-label" for="host-room-id">Cambiar sala / nombre de sala</label>
+        <input id="host-room-id" type="text" maxlength="40" placeholder="Ej. grupo-1, 3b, casa-abierta" autocomplete="off">
       </div>
-      <button id="btn-open-room" class="btn-primary host-inline-btn" type="button">Crear / abrir sala</button>
+      <button id="btn-open-room" class="btn-primary host-inline-btn" type="button">Cambiar / crear sala</button>
     </div>
 
+    <p class="host-help host-switch-help">Al cambiar de sala, la anterior se cierra automáticamente y la nueva queda en espera hasta que pulses “Iniciar sala”.</p>
     <p id="host-status" class="host-status" aria-live="polite">Conectando con Firebase…</p>
 
     <div id="host-room-panel" class="host-room-panel" hidden>
       <div class="host-room-heading">
         <div>
-          <span class="host-eyebrow">SALA</span>
+          <span class="host-eyebrow">SALA ACTIVA</span>
           <h2 id="host-room-name">—</h2>
         </div>
         <span id="host-room-state" class="room-state waiting">En espera</span>
@@ -40,10 +68,12 @@
 
       <div class="host-main-grid">
         <div class="qr-panel">
-          <div id="qr-code" class="qr-code" aria-label="Código QR de acceso"></div>
-          <p class="qr-caption">Los estudiantes escanean este QR para entrar a la sala.</p>
-          <input id="student-url" class="host-url" type="text" readonly aria-label="Enlace para estudiantes">
-          <button id="btn-copy-link" class="btn-ghost" type="button">Copiar enlace</button>
+          <span class="host-eyebrow">QR PERMANENTE</span>
+          <div id="qr-code" class="qr-code" aria-label="Código QR permanente de acceso"></div>
+          <p class="qr-caption">Puedes imprimir o dejar este mismo QR fijo. Al escanearlo, el estudiante entra automáticamente a la sala activa.</p>
+          <p class="active-qr-room">Ahora dirige a: <strong id="qr-current-room">—</strong></p>
+          <input id="student-url" class="host-url" type="text" readonly aria-label="Enlace permanente para estudiantes">
+          <button id="btn-copy-link" class="btn-ghost" type="button">Copiar enlace permanente</button>
         </div>
 
         <div class="host-controls-panel">
@@ -66,14 +96,14 @@
         </div>
         <ol id="host-leaderboard-list" class="leaderboard-list"></ol>
         <div class="global-ranking-admin">
-          <p class="host-help">Reiniciar o eliminar una sala no borra estas puntuaciones. Usa este botón únicamente cuando quieras comenzar un ranking completamente nuevo.</p>
+          <p class="host-help">Reiniciar, cambiar o eliminar una sala no borra estas puntuaciones.</p>
           <button id="btn-delete-global-scores" class="btn-ghost danger" type="button">Borrar tabla general</button>
         </div>
       </div>
     </div>
 
     <div class="host-note">
-      <strong>Importante:</strong> las salas controlan cuándo pueden jugar los estudiantes, pero todas alimentan un único ranking general. El control y el borrado del ranking quedan asociados a este navegador mediante el usuario anónimo de Firebase.
+      <strong>QR permanente:</strong> apunta siempre a <code>index.html</code>, sin un nombre de sala en la dirección. Firebase indica al juego cuál es la sala activa, así que no tienes que generar ni imprimir un QR nuevo cada vez.
     </div>
   </div>
 </section>

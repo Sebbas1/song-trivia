@@ -1,12 +1,17 @@
 /*
-  ADIVINA LA CANCIÓN — SALAS CONTROLADAS POR HOST
-  El alumno entra con ?room=nombre-sala.
-  Solo puede comenzar cuando el host marca la sala como "open" en Firestore.
+  ADIVINA LA CANCIÓN — SALA ACTIVA AUTOMÁTICA
+  - Si la URL incluye ?room=..., usa esa sala explícita.
+  - Si no incluye sala (o dice ?room=general), consulta /system/current.
+  - Así un QR permanente puede apuntar siempre a index.html.
 */
 
-const ROOM_ID = getRoomId();
-const LOCAL_STORAGE_KEY = `adivinaCancion.leaderboard.${ROOM_ID}`; // respaldo local por sala si Firebase falla
+let ROOM_ID = null;
+const LOCAL_STORAGE_KEY = "adivinaCancion.leaderboard.global";
 let unsubscribeRoom = null;
+let unsubscribeCurrentRoom = null;
+let currentRoomFromSystem = null;
+let followCurrentRoom = false;
+let roomLocked = false;
 let roomIsOpen = false;
 
 let state = {
@@ -24,9 +29,21 @@ let state = {
 function $(selector) { return document.querySelector(selector); }
 function $all(selector) { return document.querySelectorAll(selector); }
 
-function getRoomId() {
-  const raw = new URLSearchParams(window.location.search).get("room") || "general";
-  return raw.trim().toLowerCase().replace(/[^a-z0-9_-]+/g, "-").replace(/^-+|-+$/g, "").slice(0, 40) || "general";
+function sanitizeRoomId(raw) {
+  return String(raw || "")
+    .trim()
+    .toLowerCase()
+    .replace(/[^a-z0-9_-]+/g, "-")
+    .replace(/^-+|-+$/g, "")
+    .slice(0, 40);
+}
+
+function getExplicitRoomId() {
+  const raw = new URLSearchParams(window.location.search).get("room");
+  const roomId = sanitizeRoomId(raw);
+  // "general" se trata como QR permanente por compatibilidad con enlaces anteriores.
+  if (!roomId || roomId === "general") return null;
+  return roomId;
 }
 
 function shuffle(array) {
@@ -58,9 +75,10 @@ function buildAnswerOptions(category, song) {
 }
 
 function setRoomLinks() {
-  $("#room-label").textContent = ROOM_ID === "general" ? "Sala general" : `Sala: ${ROOM_ID}`;
+  $("#room-label").textContent = ROOM_ID ? `Sala: ${ROOM_ID}` : "Sala actual";
+  // El ranking ahora es global; no necesita parámetro de sala.
   $all(".leaderboard-link").forEach(link => {
-    link.href = `leaderboard.html?room=${encodeURIComponent(ROOM_ID)}`;
+    link.href = "leaderboard.html";
   });
 }
 
@@ -74,19 +92,31 @@ function setRoomAccess(status, message) {
   $("#room-access-message").dataset.status = status;
 }
 
-async function initRoomControl() {
-  setRoomLinks();
-  const firebaseOk = await window.firebaseReady;
+function watchRoom(roomId) {
+  const cleanRoomId = sanitizeRoomId(roomId);
 
-  if (!firebaseOk || !window.gameDb) {
-    setRoomAccess("error", "Firebase no está conectado. Esta sala no puede iniciar todavía.");
+  if (!cleanRoomId) {
+    if (unsubscribeRoom) {
+      unsubscribeRoom();
+      unsubscribeRoom = null;
+    }
+    ROOM_ID = null;
+    setRoomLinks();
+    setRoomAccess("waiting", "Esperando a que el host seleccione una sala…");
     return;
   }
+
+  if (ROOM_ID === cleanRoomId && unsubscribeRoom) return;
+
+  if (unsubscribeRoom) unsubscribeRoom();
+  ROOM_ID = cleanRoomId;
+  setRoomLinks();
+  setRoomAccess("waiting", `Conectando con la sala ${ROOM_ID}…`);
 
   const roomRef = window.gameDb.collection("rooms").doc(ROOM_ID);
   unsubscribeRoom = roomRef.onSnapshot(snapshot => {
     if (!snapshot.exists) {
-      setRoomAccess("missing", "Esta sala todavía no existe. Escanea el QR generado por el host.");
+      setRoomAccess("missing", "La sala seleccionada todavía no existe. Espera indicaciones del host.");
       return;
     }
 
@@ -102,6 +132,40 @@ async function initRoomControl() {
     console.error("No se pudo leer el estado de la sala:", error);
     setRoomAccess("error", "No se pudo comprobar la sala. Revisa la conexión.");
   });
+}
+
+async function initRoomControl() {
+  setRoomLinks();
+  setRoomAccess("waiting", "Buscando la sala activa…");
+
+  const firebaseOk = await window.firebaseReady;
+  if (!firebaseOk || !window.gameDb) {
+    setRoomAccess("error", "Firebase no está conectado. Esta sala no puede iniciar todavía.");
+    return;
+  }
+
+  const explicitRoomId = getExplicitRoomId();
+  if (explicitRoomId) {
+    followCurrentRoom = false;
+    watchRoom(explicitRoomId);
+    return;
+  }
+
+  // QR permanente: sigue el documento que controla el host.
+  followCurrentRoom = true;
+  unsubscribeCurrentRoom = window.gameDb.collection("system").doc("current")
+    .onSnapshot(snapshot => {
+      currentRoomFromSystem = snapshot.exists
+        ? sanitizeRoomId(snapshot.data().roomId)
+        : null;
+
+      if (!roomLocked) {
+        watchRoom(currentRoomFromSystem);
+      }
+    }, error => {
+      console.error("No se pudo leer la sala activa:", error);
+      setRoomAccess("error", "No se pudo consultar la sala activa. Revisa la conexión.");
+    });
 }
 
 $all(".btn-back").forEach(btn => {
@@ -120,6 +184,7 @@ function confirmPlayerName() {
     return;
   }
   state.playerName = name;
+  roomLocked = true;
   buildCategoryGrid();
   showScreen("screen-categories");
 }
@@ -136,10 +201,18 @@ $("#player-name").addEventListener("input", () => {
 });
 
 $("#btn-play-again").addEventListener("click", () => {
+  if (followCurrentRoom) {
+    roomLocked = false;
+    watchRoom(currentRoomFromSystem);
+    showScreen("screen-home");
+    return;
+  }
+
   if (!roomIsOpen) {
     showScreen("screen-home");
     return;
   }
+
   buildCategoryGrid();
   showScreen("screen-categories");
 });
@@ -160,10 +233,11 @@ function buildCategoryGrid() {
 }
 
 function startGame(category) {
-  if (!roomIsOpen) {
+  if (!roomIsOpen || !ROOM_ID) {
     showScreen("screen-home");
     return;
   }
+  roomLocked = true;
   state.category = category;
   const pool = shuffle(category.songs);
   const count = Math.min(ROUNDS_PER_GAME, pool.length);
@@ -301,6 +375,8 @@ async function endGame() {
 }
 
 async function saveScore(name, score, artist) {
+  if (!ROOM_ID) return false;
+
   const firebaseOk = await window.firebaseReady;
   const user = firebase.auth().currentUser;
   if (!firebaseOk || !window.gameDb || !user) {
@@ -358,6 +434,7 @@ function escapeHtml(str) {
 
 window.addEventListener("beforeunload", () => {
   if (unsubscribeRoom) unsubscribeRoom();
+  if (unsubscribeCurrentRoom) unsubscribeCurrentRoom();
 });
 
 initRoomControl();
