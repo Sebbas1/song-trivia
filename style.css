@@ -759,3 +759,33 @@ input:disabled {
     width: 100%;
   }
 }
+
+/* ---- Corrección de desplazamiento vertical del panel HOST ----
+   El body general centra las pantallas del juego. En host.html el contenido
+   puede superar la altura de la ventana; por eso el host debe comenzar arriba
+   y permitir desplazamiento vertical normal. */
+body.host-page {
+  height: auto;
+  min-height: 100vh;
+  align-items: flex-start;
+  justify-content: center;
+  overflow-x: hidden;
+  overflow-y: auto;
+  padding-top: 32px;
+  padding-bottom: 48px;
+}
+
+body.host-page .host-screen {
+  margin: 0 auto;
+}
+
+body.host-page #host-control-screen.active {
+  align-items: flex-start;
+}
+
+@media (max-width: 520px) {
+  body.host-page {
+    padding-top: 16px;
+    padding-bottom: 32px;
+  }
+}
